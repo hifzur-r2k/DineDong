@@ -1,0 +1,1339 @@
+/* ==========================================================================
+   DINEDONG - Ultra-Minimalist Artisanal Dining & Takeout
+   Typography: Inter (400, 500, 600, 700)
+   Color Palette: Warm Gallery Alabaster, Deep Charcoal, Warm Slate, Terracotta Saffron
+   ========================================================================== */
+
+:root {
+  --bg-alabaster: #F6F4EF;
+  --bg-radial-center: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-subtle: #FAF9F5;
+  --text-primary: #181715;
+  --text-secondary: #6E6A63;
+  --text-muted: #9C978E;
+  --border-hairline: #E5E1D8;
+  --accent-saffron: #D95D39;
+  --accent-saffron-light: rgba(217, 93, 57, 0.08);
+  --accent-saffron-glow: rgba(217, 93, 57, 0.18);
+  
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ease-luxury: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --shadow-sm: 0 2px 8px rgba(24, 23, 21, 0.04);
+  --shadow-card: 0 4px 14px rgba(24, 23, 21, 0.08);
+  --shadow-card-hover: 0 12px 24px rgba(24, 23, 21, 0.16);
+  --shadow-centerpiece: 0 18px 40px rgba(24, 23, 21, 0.13), 0 2px 6px rgba(24, 23, 21, 0.04);
+  --shadow-modal: 0 20px 48px rgba(24, 23, 21, 0.12);
+
+  --header-height: 64px;
+  --radius-pill: 9999px;
+  --radius-card: 6px;
+  --radius-modal: 16px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: var(--bg-alabaster);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Warm Gallery Alabaster background with soft subtle white radial glow */
+body {
+  background: radial-gradient(circle at 50% 45%, #FFFFFF 0%, #FAF8F5 45%, #F4F1EA 100%);
+  background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ultra-subtle tactile paper-grain noise overlay */
+.noise-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.025;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Tabular numbers for clean numeric alignment across all prices */
+.spotlight-price,
+.order-subtotal-nav,
+.drawer-item-price,
+.bill-amount,
+.bill-total-price,
+.search-item-price {
+  font-variant-numeric: tabular-nums;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ==========================================================================
+   1. Fixed Top Navigation Bar (Mobile Optimized)
+   ========================================================================== */
+.top-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background: rgba(246, 244, 239, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-hairline);
+  z-index: 100;
+  gap: 12px;
+}
+
+/* Brand Wordmark: Inter Bold (700) with slightly wider tracking (0.12em) */
+.brand-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.brand-title {
+  font-family: var(--font-main);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent-saffron);
+  display: inline-block;
+}
+
+/* Center Mode Pill Toggle (Dine-In / Takeout) */
+.mode-toggle-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mode-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #EAE6DE;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-hairline);
+  user-select: none;
+}
+
+.mode-glider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  height: calc(100% - 6px);
+  background: #FFFFFF;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 1px 4px rgba(24, 23, 21, 0.08);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.mode-pill[data-mode="takeout"] .mode-glider {
+  transform: translateX(100%);
+}
+
+.mode-btn {
+  position: relative;
+  z-index: 2;
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.mode-btn.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.mode-pill[data-mode="dine-in"] .mode-btn[data-target="dine-in"],
+.mode-pill[data-mode="takeout"] .mode-btn[data-target="takeout"] {
+  color: var(--accent-saffron);
+}
+
+/* Right Nav Actions */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.nav-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.nav-icon-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-saffron);
+}
+
+.nav-icon-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  fill: none;
+}
+
+/* Order Drawer Trigger */
+.order-trigger-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  color: #FFFFFF;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(24, 23, 21, 0.1);
+  white-space: nowrap;
+}
+
+.order-trigger-btn:hover {
+  background: #000000;
+}
+
+.order-badge {
+  background: var(--accent-saffron);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  min-width: 18px;
+  text-align: center;
+}
+
+.order-badge.bump {
+  animation: badgePop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes badgePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+.order-subtotal-nav {
+  font-size: 11px;
+  color: #D5D0C6;
+  font-weight: 500;
+}
+
+/* ==========================================================================
+   Main Content Layout
+   ========================================================================== */
+.main-content {
+  margin-top: var(--header-height);
+  min-height: calc(100dvh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  padding: 8px 16px 12px;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* ==========================================================================
+   2. Decluttered Minimalist Hero Spotlight
+   ========================================================================== */
+.hero-spotlight {
+  text-align: center;
+  max-width: 640px;
+  width: 100%;
+  padding: 4px 16px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 40;
+  min-height: auto;
+}
+
+.spotlight-title {
+  font-family: var(--font-main);
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 4px;
+}
+
+.spotlight-flavor-note {
+  font-family: var(--font-main);
+  font-size: clamp(12px, 1.3vw, 14px);
+  font-weight: 400;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin-bottom: 2px;
+  max-width: 520px;
+}
+
+/* Redundant actions hidden: price & add button are now directly integrated onto the centerpiece card */
+.spotlight-actions {
+  display: none !important;
+}
+
+/* ==========================================================================
+   3. Proportioned 3D Circular Food Ring
+   ========================================================================== */
+.ring-viewport {
+  width: 100%;
+  flex: 1;
+  min-height: 380px;
+  position: relative;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  user-select: none;
+  cursor: grab;
+  touch-action: pan-y;
+  margin: 0;
+}
+
+/* Soft Grounding Radial Shadow Ellipse Floating Underneath Ring */
+.ring-ground-shadow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(680px, 84vw);
+  height: 120px;
+  transform: translate(-50%, 70px);
+  background: radial-gradient(ellipse at center, rgba(24, 23, 21, 0.08) 0%, rgba(24, 23, 21, 0.03) 42%, transparent 72%);
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(14px);
+  z-index: 1;
+}
+
+.ring-viewport.is-dragging {
+  cursor: grabbing;
+}
+
+.ring-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: 50% 50%;
+  /* Balanced tilt (-18deg) to show full oval with zero clipping */
+  transform: rotateX(-18deg);
+  pointer-events: none;
+}
+
+.ring-rotator {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform-origin: center center;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* 44 Pure Photo Cards: Clean miniature food cards with zero overlap */
+.food-card {
+  position: absolute;
+  width: 44px;
+  height: 68px;
+  left: -22px;
+  top: -34px;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  border-radius: var(--radius-card);
+  opacity: 1;
+  pointer-events: auto;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+  touch-action: manipulation;
+}
+
+/* Extended invisible hit area for easy tapping without visual clutter */
+.food-card::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.food-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  border-radius: var(--radius-card);
+  box-shadow: 0 4px 12px rgba(24, 23, 21, 0.08), 0 1px 3px rgba(24, 23, 21, 0.04);
+  opacity: 1;
+  filter: brightness(1);
+  transform: scale(1);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+  border: none;
+  outline: none;
+}
+
+/* Double-sided card faces: outward facing with visible hit areas */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
+  background: #EAE6DE;
+  border: none;
+  pointer-events: none;
+}
+
+.card-face.card-front {
+  transform: rotateY(0deg) translateZ(0.5px);
+}
+
+.card-face.card-back {
+  transform: rotateY(180deg) translateZ(0.5px);
+}
+
+.card-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: none;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Single Enlarged Card: Pure size increase (scale 1.15) + soft neutral drop shadow */
+.food-card.is-active-enlarged .food-card-inner {
+  transform: scale(1.15);
+  box-shadow: 0 14px 28px rgba(24, 23, 21, 0.16), 0 4px 10px rgba(24, 23, 21, 0.06);
+}
+
+/* ==========================================================================
+   Tall Centerpiece Dish Showcase Card (Focal Point inside 3D Ring)
+   Increased height vertical portrait card with Veg/Non-Veg icon, Price & Add Button
+   ========================================================================== */
+.centerpiece-frame {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform-origin: center center;
+  width: 220px;
+  height: 320px;
+  border-radius: 18px;
+  border: 2px solid #FFFFFF;
+  background: #EAE6DE;
+  box-shadow: 0 20px 50px rgba(24, 23, 21, 0.16), 0 4px 14px rgba(24, 23, 21, 0.06);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  /* Centered at 45% and counter-rotated (+18deg) to face user upright */
+  transform: translate3d(-50%, -50%, 0) rotateX(18deg);
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.centerpiece-frame:hover {
+  box-shadow: 0 24px 60px rgba(24, 23, 21, 0.2), 0 6px 18px rgba(24, 23, 21, 0.08);
+}
+
+/* Single Veg / Non-Veg Indicator Icon Badge */
+.centerpiece-diet-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.14);
+}
+
+.centerpiece-diet-badge.veg {
+  border: 1.5px solid #1B8755;
+}
+
+.centerpiece-diet-badge.veg .diet-marker {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1B8755;
+  display: block;
+}
+
+.centerpiece-diet-badge.non-veg {
+  border: 1.5px solid #944434;
+}
+
+.centerpiece-diet-badge.non-veg .diet-marker {
+  width: 0;
+  height: 0;
+  border-left: 4.5px solid transparent;
+  border-right: 4.5px solid transparent;
+  border-bottom: 7.5px solid #944434;
+  display: block;
+}
+
+/* Full-Bleed Food Image with Silky Cross-Fade */
+.centerpiece-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.centerpiece-img.active {
+  opacity: 1;
+}
+
+/* Floating Bottom Bar: Price & + Add Button directly on the image */
+.centerpiece-bottom-bar {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  padding: 5px 8px 5px 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 16px rgba(24, 23, 21, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 15;
+}
+
+.centerpiece-price {
+  font-family: var(--font-main);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.centerpiece-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: var(--accent-saffron);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 2px 8px var(--accent-saffron-glow);
+  user-select: none;
+}
+
+.centerpiece-add-btn:hover {
+  background: #C44C27;
+  transform: translateY(-1px);
+}
+
+.centerpiece-add-btn:active {
+  transform: scale(0.95);
+}
+
+/* ==========================================================================
+   Minimalist Frameless Bottom Controls Cluster
+   ========================================================================== */
+.bottom-controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  margin-top: auto;
+  padding: 8px 0 4px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  position: relative;
+  z-index: 40;
+}
+
+.ring-nav-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ctrl-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(24, 23, 21, 0.04);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 0;
+}
+
+.ctrl-circle-btn:hover {
+  color: var(--text-primary);
+  border-color: #C0BBB0;
+  background: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(24, 23, 21, 0.08);
+}
+
+.ctrl-circle-btn:active {
+  transform: translateY(0);
+}
+
+.ctrl-circle-btn.active {
+  background: var(--text-primary);
+  color: #FFFFFF;
+  border-color: var(--text-primary);
+}
+
+.ctrl-circle-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.ctrl-play-btn svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ==========================================================================
+   Order Drawer (Cart)
+   ========================================================================== */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 23, 21, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.drawer-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.order-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 400px;
+  max-width: 100vw;
+  background: var(--bg-alabaster);
+  border-left: 1px solid var(--border-hairline);
+  box-shadow: -8px 0 32px rgba(24, 23, 21, 0.1);
+  z-index: 210;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.order-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 18px 20px;
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-title-group h2 {
+  font-family: var(--font-main);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.drawer-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.drawer-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-hairline);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.drawer-mode-notice {
+  padding: 10px 20px;
+  background: var(--bg-card-subtle);
+  border-bottom: 1px solid var(--border-hairline);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.drawer-mode-badge {
+  font-weight: 600;
+  color: var(--accent-saffron);
+}
+
+.drawer-items-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drawer-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-muted);
+  gap: 8px;
+  padding: 30px 16px;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-hairline);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.drawer-item-img {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.drawer-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer-item-title {
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drawer-item-price {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-saffron);
+  margin-top: 2px;
+}
+
+.drawer-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.item-qty-stepper {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  background: #FAF8F5;
+  height: 28px;
+}
+
+.item-qty-stepper button {
+  width: 24px;
+  height: 100%;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.item-qty-stepper span {
+  width: 18px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.item-delete-btn {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.item-delete-btn:hover {
+  color: #C62828;
+}
+
+.drawer-footer {
+  padding: 16px 20px;
+  background: #FFFFFF;
+  border-top: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bill-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.bill-row.total {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-top: 1px dashed var(--border-hairline);
+  padding-top: 8px;
+}
+
+.bill-total-price {
+  color: var(--accent-saffron);
+}
+
+.checkout-btn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--accent-saffron);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.checkout-btn:hover:not(:disabled) {
+  background: #C44C27;
+}
+
+.checkout-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Modals & Toast
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 23, 21, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.receipt-modal {
+  width: 420px;
+  max-width: 100%;
+  background: #FFFFFF;
+  border-radius: var(--radius-modal);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-modal);
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.receipt-icon-celebration {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(45, 106, 79, 0.1);
+  color: #2D6A4F;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.receipt-icon-celebration svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+.receipt-modal h3 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.receipt-order-id {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-saffron);
+  background: var(--accent-saffron-light);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.receipt-done-btn {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Search Modal */
+.search-modal {
+  width: 480px;
+  max-width: 100%;
+  background: #FFFFFF;
+  border-radius: var(--radius-modal);
+  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-modal);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 75vh;
+}
+
+.search-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: var(--font-main);
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.search-results-list {
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 360px;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-item:hover {
+  background: var(--bg-card-subtle);
+}
+
+.search-item-img {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+
+.search-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.search-item-cat {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.search-item-price {
+  margin-left: auto;
+  font-weight: 600;
+  color: var(--accent-saffron);
+  font-size: 13px;
+}
+
+/* Toast */
+.toast-notice {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: var(--text-primary);
+  color: #FFFFFF;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 6px 20px rgba(24, 23, 21, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 500;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-notice.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Responsive Adaptations & Mobile Navbar Fix
+   ========================================================================== */
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --header-height: 56px;
+  }
+
+  .top-nav {
+    padding: 0 12px;
+    gap: 6px;
+  }
+
+  .brand-title {
+    font-size: 16px;
+    letter-spacing: -0.03em;
+  }
+
+  .brand-dot {
+    width: 5px;
+    height: 5px;
+  }
+
+  .mode-pill {
+    padding: 2px;
+  }
+
+  .mode-btn {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .order-trigger-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+    gap: 5px;
+  }
+
+  .order-subtotal-nav {
+    display: none;
+  }
+
+  .main-content {
+    padding: 14px 12px 12px;
+  }
+
+  .hero-spotlight {
+    padding: 4px 10px;
+    min-height: 100px;
+  }
+
+  .spotlight-title {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .spotlight-flavor-note {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .spotlight-price {
+    font-size: 15px;
+  }
+
+  .spotlight-add-btn {
+    padding: 5px 14px;
+    font-size: 11px;
+  }
+
+  .ring-viewport {
+    min-height: 340px;
+    height: auto;
+  }
+
+  .ring-ground-shadow {
+    width: 86vw;
+    height: 80px;
+    transform: translate(-50%, 55px);
+    filter: blur(10px);
+  }
+
+  /* Ring Rotator on Mobile: lowered to top 57% */
+  .ring-rotator {
+    top: 57%;
+  }
+
+  /* Miniature Mobile Ring Cards: 30px x 46px -> Spacing 37px -> ZERO OVERLAP! Clean & uncluttered! */
+  .food-card {
+    width: 30px;
+    height: 46px;
+    left: -15px;
+    top: -23px;
+    border-radius: 4px;
+  }
+
+  .food-card-inner {
+    border-radius: 4px;
+  }
+
+  .card-face {
+    border-radius: 4px;
+  }
+
+  /* Centerpiece Card on Mobile: Increased height, sleek portrait ratio */
+  .centerpiece-frame {
+    width: 165px;
+    height: 245px;
+    border-radius: 16px;
+    top: 43%;
+    transform: translate3d(-50%, -50%, 0) rotateX(18deg);
+  }
+
+  .centerpiece-diet-badge {
+    top: 8px;
+    left: 8px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .centerpiece-diet-badge.veg .diet-marker {
+    width: 6px;
+    height: 6px;
+  }
+
+  .centerpiece-diet-badge.non-veg .diet-marker {
+    border-left-width: 4px;
+    border-right-width: 4px;
+    border-bottom-width: 6.5px;
+  }
+
+  .centerpiece-bottom-bar {
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    padding: 4px 6px 4px 10px;
+  }
+
+  .centerpiece-price {
+    font-size: 13.5px;
+  }
+
+  .centerpiece-add-btn {
+    padding: 5px 11px;
+    font-size: 10.5px;
+  }
+
+  .bottom-controls-bar {
+    padding: 4px 0 2px;
+  }
+
+  .ctrl-circle-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-title {
+    font-size: 15px;
+  }
+  .order-text {
+    display: none;
+  }
+  .food-card {
+    width: 26px;
+    height: 40px;
+    left: -13px;
+    top: -20px;
+  }
+  .centerpiece-frame {
+    width: 150px;
+    height: 225px;
+  }
+  .ctrl-circle-btn {
+    width: 34px;
+    height: 34px;
+  }
+}

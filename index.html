@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DINEDONG | Minimal Artisanal Dining & Takeout</title>
+  
+  <!-- Google Fonts: Inter (400, 500, 600, 700) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Subtle Tactile Paper-Grain Noise Overlay -->
+  <div class="noise-overlay" aria-hidden="true"></div>
+
+  <div class="app-container">
+    
+    <!-- ====================================================================
+         1. Fixed Top Navigation Bar (Mobile Optimized, No Overlaps)
+         ==================================================================== -->
+    <header class="top-nav">
+      <!-- Left: Minimal Brand Wordmark -->
+      <a class="brand-wordmark" id="brandHome" href="#" aria-label="DINEDONG Home">
+        <span class="brand-title">DINEDONG</span>
+        <span class="brand-dot"></span>
+      </a>
+
+      <!-- Center: Sleek Mode Pill Toggle (Dine-In / Takeout) -->
+      <div class="mode-toggle-wrapper">
+        <div class="mode-pill" id="modePill" data-mode="dine-in" role="radiogroup" aria-label="Dining Mode Selector">
+          <div class="mode-glider" id="modeGlider"></div>
+          
+          <button type="button" class="mode-btn active" data-target="dine-in" role="radio" aria-checked="true" id="btnDineIn">
+            <span>Dine-In</span>
+          </button>
+          
+          <button type="button" class="mode-btn" data-target="takeout" role="radio" aria-checked="false" id="btnTakeout">
+            <span>Takeout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Search, Sound & Order Trigger -->
+      <div class="nav-actions">
+        <button type="button" class="nav-icon-btn desktop-only" id="openSearchBtn" title="Search Dishes (Press /)" aria-label="Search Dishes">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </button>
+
+        <button type="button" class="nav-icon-btn desktop-only" id="soundToggleBtn" title="Toggle Sound Chimes" aria-label="Toggle Sound Chimes">
+          <svg id="soundOnIcon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg id="soundOffIcon" viewBox="0 0 24 24" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+        </button>
+
+        <!-- Compact Order Drawer Trigger -->
+        <button type="button" class="order-trigger-btn" id="openOrderBtn" aria-label="Open Order Drawer">
+          <span class="order-text">Order</span>
+          <span class="order-badge" id="orderCountBadge">0</span>
+          <span class="order-subtotal-nav" id="orderNavSubtotal">₹0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ====================================================================
+         Main Content Area
+         ==================================================================== -->
+    <main class="main-content">
+
+      <!-- ====================================================================
+           2. Decluttered Minimalist Hero Spotlight (Directly Above Ring)
+           ==================================================================== -->
+      <section class="hero-spotlight" id="heroSpotlight" aria-live="polite">
+        <h1 class="spotlight-title" id="spotlightTitle">Mumbai Masala Vada Pav</h1>
+        <p class="spotlight-flavor-note" id="spotlightFlavorNote">
+          Spiced golden potato batata vada, fiery garlic-peanut dry chutney, toasted buttered pav.
+        </p>
+
+        <div class="spotlight-actions" style="display: none;">
+          <span class="spotlight-price" id="spotlightPrice">₹120</span>
+          <button type="button" class="spotlight-add-btn" id="spotlightAddBtn">
+            <span>+ Add</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           3. True 3D Food Ring with Centerpiece Dish Showcase
+           ==================================================================== -->
+      <section class="ring-viewport" id="ringViewport" aria-label="3D Rotating Food Ring">
+        <!-- Soft Grounding Radial Shadow Ellipse Floating Underneath Ring -->
+        <div class="ring-ground-shadow" aria-hidden="true"></div>
+
+        <div class="ring-stage" id="ringStage">
+          
+          <!-- Tall Centerpiece Dish Showcase Card with Veg/Non-Veg Icon, Price & Add Button -->
+          <div class="centerpiece-frame" id="centerpieceCard" role="region" aria-label="Selected Dish Showcase" title="Click image to lock / resume rotation">
+            <!-- Single Veg / Non-Veg Indicator Icon Badge -->
+            <div class="centerpiece-diet-badge veg" id="centerpieceDietBadge" title="Vegetarian">
+              <span class="diet-marker"></span>
+            </div>
+
+            <!-- Full-Bleed High-Res Food Photo with Cross-Fade -->
+            <img src="" alt="" class="centerpiece-img plate-img-a active" id="centerpieceImgA" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80&auto=format&fit=crop'" />
+            <img src="" alt="" class="centerpiece-img plate-img-b" id="centerpieceImgB" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80&auto=format&fit=crop'" />
+
+            <!-- Floating Price & + Add Button directly on the image -->
+            <div class="centerpiece-bottom-bar" id="centerpieceBottomBar">
+              <span class="centerpiece-price" id="centerpiecePrice">₹120</span>
+              <button type="button" class="centerpiece-add-btn" id="centerpieceAddBtn" aria-label="Add Mumbai Masala Vada Pav to Order">
+                <span>+ Add</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Rotating ring holding the 44 pure photo cards (radius R) -->
+          <div class="ring-rotator" id="ringRotator">
+            <!-- 44 Pure Photo Cards injected dynamically via app.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Minimalist Frameless Bottom Controls: Cluster of 3 Circular Icon Buttons (‹, ‖ / ›, ›) -->
+      <section class="bottom-controls-bar" aria-label="Showcase Controls">
+        <div class="ring-nav-cluster">
+          <button type="button" class="ctrl-circle-btn" id="btnPrevDish" title="Previous Dish" aria-label="Previous Dish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          <button type="button" class="ctrl-circle-btn ctrl-play-btn" id="btnPauseRotation" title="Toggle Auto-Rotation" aria-label="Toggle Auto-Rotation">
+            <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="7" y="5" width="3.2" height="14" rx="1"/>
+              <rect x="13.8" y="5" width="3.2" height="14" rx="1"/>
+            </svg>
+            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+              <polygon points="8 5 19 12 8 19 8 5"/>
+            </svg>
+          </button>
+
+          <button type="button" class="ctrl-circle-btn" id="btnNextDish" title="Next Dish" aria-label="Next Dish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ====================================================================
+         Slide-Over Order Drawer (Cart)
+         ==================================================================== -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <aside class="order-drawer" id="orderDrawer" aria-label="Order Cart Drawer" aria-hidden="true">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <h2>Your Order</h2>
+          <span class="drawer-subtitle" id="drawerItemCountSubtitle">0 items selected</span>
+        </div>
+        <button type="button" class="drawer-close-btn" id="drawerCloseBtn" title="Close Order Drawer" aria-label="Close Order Drawer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <div class="drawer-mode-notice" id="drawerModeNotice">
+        <span>Order Mode: <strong class="drawer-mode-badge" id="drawerActiveModeLabel">Dine-In (Table 04)</strong></span>
+        <span id="drawerEstTime">Est. 20-25 mins</span>
+      </div>
+
+      <div class="drawer-items-list" id="drawerItemsList"></div>
+
+      <div class="drawer-footer" id="drawerFooter">
+        <div class="bill-row">
+          <span>Subtotal</span>
+          <span id="billSubtotal">₹0</span>
+        </div>
+        <div class="bill-row">
+          <span>GST (5%)</span>
+          <span id="billGst">₹0</span>
+        </div>
+        <div class="bill-row" id="billPackagingRow">
+          <span id="billPackagingLabel">Table Service</span>
+          <span id="billPackagingAmount">₹0</span>
+        </div>
+        <div class="bill-row total">
+          <span>Total</span>
+          <span class="bill-total-price" id="billTotal">₹0</span>
+        </div>
+
+        <button type="button" class="checkout-btn" id="checkoutBtn" disabled>
+          <span>Confirm &amp; Place Order</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Order Confirmation Modal -->
+    <div class="modal-backdrop" id="receiptModalBackdrop">
+      <div class="receipt-modal" role="dialog" aria-modal="true">
+        <div class="receipt-icon-celebration">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>Order Placed</h3>
+        <p class="receipt-order-id" id="receiptOrderId">ORDER #DD-8492</p>
+        <p style="font-size: 13px; color: var(--text-secondary); max-width: 340px;">
+          Your order has been sent to the kitchen. Prepared fresh to order.
+        </p>
+
+        <button type="button" class="receipt-done-btn" id="receiptCloseBtn">
+          Back to Menu
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Modal -->
+    <div class="modal-backdrop" id="searchModalBackdrop">
+      <div class="search-modal" role="dialog" aria-modal="true">
+        <div class="search-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" class="search-input" id="dishSearchInput" placeholder="Search menu...">
+          <button type="button" class="drawer-close-btn" id="searchCloseBtn" aria-label="Close Search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="search-results-list" id="searchResultsList"></div>
+      </div>
+    </div>
+
+    <!-- Toast Notice -->
+    <div class="toast-notice" id="toastNotice" role="status" aria-live="polite">
+      <span id="toastIcon">✓</span>
+      <span id="toastMessage">Added to order</span>
+    </div>
+
+  </div>
+
+  <!-- JavaScript Module -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
