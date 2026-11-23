@@ -25,6 +25,7 @@ const state = {
   isLocked: false,
   lockedDish: null,
   hoveredDish: null,
+  isCenterpieceHovered: false,
   lastDragX: 0,
   lastDragTime: 0,
   currentFrontIndex: 0,
@@ -298,13 +299,15 @@ function animationLoop(timestamp) {
     if (Math.abs(diff) < 0.2) {
       state.currentAngle = state.targetAngle;
       state.isTargetAnimating = false;
-      if (!state.isManualPaused) state.isPaused = false;
+      if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
+        state.isPaused = false;
+      }
     } else {
       state.currentAngle += diff * 0.08 * dt;
     }
   } else if (!state.isDragging) {
     // Ring Deceleration: Smooth and immediate (~150ms deceleration)
-    const shouldRotate = !state.isPaused && !state.isManualPaused && !state.isLocked && !state.hoveredDish;
+    const shouldRotate = !state.isPaused && !state.isManualPaused && !state.isLocked && !state.hoveredDish && !state.isCenterpieceHovered;
     const targetSpeed = shouldRotate ? state.rotationSpeed : 0;
 
     if (targetSpeed === 0) {
@@ -337,7 +340,7 @@ function animationLoop(timestamp) {
 
   if (frontIdx !== state.currentFrontIndex) {
     state.currentFrontIndex = frontIdx;
-    if (!state.isLocked && !state.hoveredDish) {
+    if (!state.isLocked && !state.hoveredDish && !state.isCenterpieceHovered) {
       updateHeroSpotlight(DISHES[frontIdx]);
       updatePlatedCenterpiece(DISHES[frontIdx]);
     }
@@ -355,8 +358,26 @@ let currentPlateImg = 'a';
 let currentPlateDishId = null;
 let hoverDismissTimer = null;
 
+// Dynamic Add Button state synced with Order Cart
+function updateCenterpieceAddButton(dish) {
+  if (!els.centerpieceAddBtn || !dish) return;
+  const inCart = state.cart.get(dish.id);
+  const qty = inCart ? inCart.quantity : 0;
+
+  if (qty > 0) {
+    els.centerpieceAddBtn.innerHTML = `<span>+ Add (${qty})</span>`;
+    els.centerpieceAddBtn.classList.add('has-items');
+    els.centerpieceAddBtn.setAttribute('aria-label', `Add another ${dish.name} to Order (${qty} currently in order)`);
+  } else {
+    els.centerpieceAddBtn.innerHTML = `<span>+ Add</span>`;
+    els.centerpieceAddBtn.classList.remove('has-items');
+    els.centerpieceAddBtn.setAttribute('aria-label', `Add ${dish.name} to Order`);
+  }
+}
+
 function updatePlatedCenterpiece(dish) {
   if (!dish) return;
+  state.centerpieceActiveDish = dish;
   
   // Update single Veg / Non-Veg Icon Badge
   if (els.centerpieceDietBadge) {
@@ -376,10 +397,8 @@ function updatePlatedCenterpiece(dish) {
     els.centerpiecePrice.textContent = `₹${dish.price}`;
   }
 
-  // Update Add Button aria-label
-  if (els.centerpieceAddBtn) {
-    els.centerpieceAddBtn.setAttribute('aria-label', `Add ${dish.name} to Order`);
-  }
+  // Update Add Button label & quantity indicator
+  updateCenterpieceAddButton(dish);
 
   if (dish.id === currentPlateDishId) return;
   currentPlateDishId = dish.id;
@@ -403,6 +422,7 @@ function updatePlatedCenterpiece(dish) {
 function lockOnDish(dish, isClick = false) {
   clearTimeout(hoverDismissTimer);
   state.isPaused = true;
+  state.currentSpeed = 0; // Immediately stop residual momentum
   if (isClick) {
     state.isPinnedByClick = true;
     state.isLocked = true;
@@ -425,6 +445,7 @@ function unlockAndResume() {
   state.lockedDish = null;
   state.hoveredDish = null;
   state.centerpieceActiveDish = null;
+  state.isCenterpieceHovered = false;
 
   if (!state.isManualPaused) {
     state.isPaused = false;
@@ -438,17 +459,43 @@ function unlockAndResume() {
 }
 
 function checkDismissHover() {
-  if (state.isPinnedByClick) return;
+  if (state.isPinnedByClick || state.isLocked) return;
+  clearTimeout(hoverDismissTimer);
   hoverDismissTimer = setTimeout(() => {
-    if (state.isPinnedByClick) return;
-    if (!els.ringViewport.querySelector('.food-card:hover')) {
+    if (state.isPinnedByClick || state.isLocked) return;
+    const hasCardHover = !!els.ringViewport.querySelector('.food-card:hover');
+    const hasCenterpieceHover = !!els.centerpieceCard && (els.centerpieceCard.matches(':hover') || state.isCenterpieceHovered);
+    if (!hasCardHover && !hasCenterpieceHover) {
       unlockAndResume();
     }
-  }, 140);
+  }, 220);
 }
 
-// Click on centerpiece card image to toggle lock or unlock
+// Centerpiece Card Desktop Hover & Interaction:
+// When cursor enters the big image, rotation freezes immediately so the user can easily click "+ Add"
 if (els.centerpieceCard) {
+  els.centerpieceCard.addEventListener('mouseenter', () => {
+    clearTimeout(hoverDismissTimer);
+    state.isCenterpieceHovered = true;
+    state.isPaused = true;
+    state.currentSpeed = 0;
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+    if (currentDish) {
+      state.centerpieceActiveDish = currentDish;
+      updateHeroSpotlight(currentDish);
+      updatePlatedCenterpiece(currentDish);
+      updateActiveCardHighlight();
+    }
+  });
+
+  els.centerpieceCard.addEventListener('mouseleave', () => {
+    state.isCenterpieceHovered = false;
+    if (!state.isPinnedByClick && !state.isLocked) {
+      checkDismissHover();
+    }
+  });
+
+  // Click on centerpiece card image to toggle lock or unlock
   els.centerpieceCard.addEventListener('click', (e) => {
     // If clicking on Add Button or inside bottom bar, don't toggle lock
     if (e.target.closest('#centerpieceAddBtn') || e.target.closest('.centerpiece-bottom-bar')) return;
@@ -456,19 +503,37 @@ if (els.centerpieceCard) {
     if (state.isLocked || state.hoveredDish) {
       unlockAndResume();
     } else {
-      lockOnDish(DISHES[state.currentFrontIndex], true);
+      const targetDish = state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+      lockOnDish(targetDish, true);
     }
   });
 }
 
-// Centerpiece Add Button: adds active/featured dish directly to order
+// Centerpiece Add Button: adds active/featured dish directly to order & allows adding multiple times
 if (els.centerpieceAddBtn) {
   els.centerpieceAddBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
-    if (currentDish) {
-      addToOrder(currentDish, 1);
-    }
+    if (!currentDish) return;
+
+    // Pin and lock firmly onto this dish so ring stays strictly paused
+    state.isPinnedByClick = true;
+    state.isLocked = true;
+    state.isPaused = true;
+    state.currentSpeed = 0;
+    state.lockedDish = currentDish;
+    state.centerpieceActiveDish = currentDish;
+
+    // Add 1 more of this dish to the order
+    addToOrder(currentDish, 1);
+
+    // Keep active card highlight firmly on this dish
+    updateActiveCardHighlight();
+
+    // Tactile button bounce feedback
+    els.centerpieceAddBtn.classList.remove('tap-bump');
+    void els.centerpieceAddBtn.offsetWidth;
+    els.centerpieceAddBtn.classList.add('tap-bump');
   });
 }
 
@@ -482,8 +547,8 @@ if (els.centerpieceCloseBtn) {
 
 // Dismiss / unlock when clicking anywhere outside
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('#centerpieceCard') && !e.target.closest('.food-card') && !e.target.closest('.ctrl-circle-btn')) {
-    if (state.isLocked || state.hoveredDish) {
+  if (!e.target.closest('#centerpieceCard') && !e.target.closest('.food-card') && !e.target.closest('.ctrl-circle-btn') && !e.target.closest('.order-drawer') && !e.target.closest('.cart-nav-btn')) {
+    if (state.isLocked || state.hoveredDish || state.isPinnedByClick) {
       unlockAndResume();
     }
   }
@@ -494,7 +559,14 @@ if (els.spotlightAddBtn) {
   els.spotlightAddBtn.addEventListener('click', () => {
     const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
     if (currentDish) {
+      state.isPinnedByClick = true;
+      state.isLocked = true;
+      state.isPaused = true;
+      state.currentSpeed = 0;
+      state.lockedDish = currentDish;
+      state.centerpieceActiveDish = currentDish;
       addToOrder(currentDish, 1);
+      updateActiveCardHighlight();
     }
   });
 }
@@ -646,15 +718,20 @@ function addToOrder(dish, qty = 1) {
   playChimeSound();
 
   const existing = state.cart.get(dish.id);
+  let totalForDish = qty;
   if (existing) {
     existing.quantity += qty;
+    totalForDish = existing.quantity;
   } else {
     state.cart.set(dish.id, { dish, quantity: qty });
   }
 
   updateOrderBadge();
   renderOrderDrawer();
-  showToast(`Added ${dish.name}`);
+  updateCenterpieceAddButton(dish);
+
+  const toastMsg = totalForDish > 1 ? `Added ${dish.name} (${totalForDish} in order)` : `Added ${dish.name}`;
+  showToast(toastMsg);
 }
 
 function updateItemQuantity(dishId, delta) {
@@ -668,12 +745,22 @@ function updateItemQuantity(dishId, delta) {
 
   updateOrderBadge();
   renderOrderDrawer();
+
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  if (currentDish && currentDish.id === dishId) {
+    updateCenterpieceAddButton(currentDish);
+  }
 }
 
 function removeItemFromOrder(dishId) {
   state.cart.delete(dishId);
   updateOrderBadge();
   renderOrderDrawer();
+
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  if (currentDish && currentDish.id === dishId) {
+    updateCenterpieceAddButton(currentDish);
+  }
 }
 
 function updateOrderBadge() {
@@ -769,7 +856,7 @@ function closeDrawer() {
   els.orderDrawer.classList.remove('open');
   els.drawerBackdrop.classList.remove('open');
   els.orderDrawer.setAttribute('aria-hidden', 'true');
-  if (!state.isManualPaused && !els.centerpieceCard.classList.contains('visible')) {
+  if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
     state.isPaused = false;
   }
 }
@@ -789,6 +876,11 @@ els.checkoutBtn.addEventListener('click', () => {
   state.cart.clear();
   updateOrderBadge();
   renderOrderDrawer();
+
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  if (currentDish) {
+    updateCenterpieceAddButton(currentDish);
+  }
 });
 
 els.receiptCloseBtn.addEventListener('click', () => {
@@ -810,7 +902,7 @@ function openSearch() {
 function closeSearch() {
   if (!els.searchModalBackdrop) return;
   els.searchModalBackdrop.classList.remove('open');
-  if (!state.isManualPaused && !els.centerpieceCard.classList.contains('visible')) {
+  if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
     state.isPaused = false;
   }
 }
@@ -849,7 +941,7 @@ function renderSearchResults(query) {
       closeSearch();
       rotateToDishIndex(dish.id - 1);
       setTimeout(() => {
-        showCenterpieceCard(dish);
+        lockOnDish(dish, true);
       }, 450);
     });
 
@@ -878,7 +970,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeSearch();
     closeDrawer();
-    hideCenterpieceCard();
+    unlockAndResume();
     els.receiptModalBackdrop.classList.remove('open');
   }
 });

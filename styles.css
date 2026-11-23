@@ -641,6 +641,27 @@ body {
   transform: scale(0.95);
 }
 
+.centerpiece-add-btn.has-items {
+  background: #C44C27;
+  box-shadow: 0 2px 10px rgba(196, 76, 39, 0.45);
+}
+
+.centerpiece-add-btn.tap-bump {
+  animation: btnTapBump 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes btnTapBump {
+  0% {
+    transform: scale(0.92);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* ==========================================================================
    Minimalist Frameless Bottom Controls Cluster
    ========================================================================== */
