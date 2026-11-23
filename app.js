@@ -10,6 +10,7 @@ import { DISHES, FALLBACK_IMAGE_URL, getThumbnailUrl, getHighResUrl } from './di
 // ============================================================================
 const state = {
   orderMode: 'dine-in', // 'dine-in' | 'takeout'
+  dietFilter: 'all',    // 'all' | 'veg' | 'non-veg'
   cart: new Map(),      // dishId -> { dish, quantity }
   currentAngle: 0,      // in degrees
   rotationSpeed: 0.065, // degrees per frame (base anti-clockwise speed)
@@ -36,8 +37,15 @@ const state = {
   targetAngle: 0,
 };
 
-const TOTAL_CARDS = DISHES.length; // 44
-const ANGLE_STEP = 360 / TOTAL_CARDS; // ~8.1818 deg
+function getFilteredDishes() {
+  if (state.dietFilter === 'veg') return DISHES.filter(d => d.veg);
+  if (state.dietFilter === 'non-veg') return DISHES.filter(d => !d.veg);
+  return DISHES;
+}
+
+let currentDishes = DISHES;
+let totalCards = currentDishes.length;
+let angleStep = 360 / totalCards;
 
 // ============================================================================
 // DOM Elements
@@ -69,7 +77,9 @@ const els = {
   centerpieceAddBtn: document.getElementById('centerpieceAddBtn'),
   centerpieceCloseBtn: document.getElementById('centerpieceCloseBtn'),
 
-  // Controls Bar
+  // Controls Bar & Curated Diet Pill
+  dietFilterPill: document.getElementById('dietFilterPill'),
+  dietFilterBtns: document.querySelectorAll('.diet-filter-btn'),
   btnPauseRotation: document.getElementById('btnPauseRotation'),
   pauseIcon: document.getElementById('pauseIcon'),
   playIcon: document.getElementById('playIcon'),
@@ -183,8 +193,8 @@ function buildFoodRing() {
   cardElements.length = 0;
   const radius = getRingRadius();
 
-  DISHES.forEach((dish, idx) => {
-    const baseAngle = idx * ANGLE_STEP; // degrees around circle
+  currentDishes.forEach((dish, idx) => {
+    const baseAngle = idx * angleStep; // degrees around circle
     
     const card = document.createElement('div');
     card.className = 'food-card';
@@ -236,7 +246,7 @@ function buildFoodRing() {
   });
 
   els.ringStage.style.transform = `rotateX(-18deg)`;
-  updatePlatedCenterpiece(DISHES[state.currentFrontIndex]);
+  updatePlatedCenterpiece(currentDishes[state.currentFrontIndex] || currentDishes[0]);
   updateActiveCardHighlight();
 }
 
@@ -244,7 +254,7 @@ function buildFoodRing() {
 window.addEventListener('resize', () => {
   const radius = getRingRadius();
   cardElements.forEach((card, idx) => {
-    const baseAngle = idx * ANGLE_STEP;
+    const baseAngle = idx * angleStep;
     card.style.transform = `rotateY(${baseAngle}deg) translateZ(${radius}px)`;
   });
 });
@@ -266,7 +276,7 @@ function updateActiveCardHighlight() {
   let activeHighlightIndex = -1;
   const activeDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish;
   if (activeDish) {
-    activeHighlightIndex = DISHES.findIndex(d => d.id === activeDish.id);
+    activeHighlightIndex = currentDishes.findIndex(d => d.id === activeDish.id);
   } else {
     activeHighlightIndex = state.currentFrontIndex;
   }
@@ -336,13 +346,14 @@ function animationLoop(timestamp) {
   // Front-Card Angle Tracking
   let normalized = (-state.currentAngle) % 360;
   if (normalized < 0) normalized += 360;
-  const frontIdx = Math.round(normalized / ANGLE_STEP) % TOTAL_CARDS;
+  const frontIdx = Math.round(normalized / angleStep) % totalCards;
 
   if (frontIdx !== state.currentFrontIndex) {
     state.currentFrontIndex = frontIdx;
     if (!state.isLocked && !state.hoveredDish && !state.isCenterpieceHovered) {
-      updateHeroSpotlight(DISHES[frontIdx]);
-      updatePlatedCenterpiece(DISHES[frontIdx]);
+      const frontDish = currentDishes[frontIdx] || currentDishes[0];
+      updateHeroSpotlight(frontDish);
+      updatePlatedCenterpiece(frontDish);
     }
     updateActiveCardHighlight();
     playTickSound();
@@ -452,7 +463,7 @@ function unlockAndResume() {
   }
 
   // Restore Hero Spotlight and Plated Showcase to current front-center card
-  const frontDish = DISHES[state.currentFrontIndex];
+  const frontDish = currentDishes[state.currentFrontIndex] || currentDishes[0];
   updateHeroSpotlight(frontDish);
   updatePlatedCenterpiece(frontDish);
   updateActiveCardHighlight();
@@ -479,7 +490,7 @@ if (els.centerpieceCard) {
     state.isCenterpieceHovered = true;
     state.isPaused = true;
     state.currentSpeed = 0;
-    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
     if (currentDish) {
       state.centerpieceActiveDish = currentDish;
       updateHeroSpotlight(currentDish);
@@ -503,7 +514,7 @@ if (els.centerpieceCard) {
     if (state.isLocked || state.hoveredDish) {
       unlockAndResume();
     } else {
-      const targetDish = state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+      const targetDish = state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
       lockOnDish(targetDish, true);
     }
   });
@@ -513,7 +524,7 @@ if (els.centerpieceCard) {
 if (els.centerpieceAddBtn) {
   els.centerpieceAddBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
     if (!currentDish) return;
 
     // Pin and lock firmly onto this dish so ring stays strictly paused
@@ -557,7 +568,7 @@ document.addEventListener('click', (e) => {
 // Spotlight Hero Add Button (fallback if triggered)
 if (els.spotlightAddBtn) {
   els.spotlightAddBtn.addEventListener('click', () => {
-    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
     if (currentDish) {
       state.isPinnedByClick = true;
       state.isLocked = true;
@@ -657,7 +668,7 @@ function stepDish(direction) {
   if (state.isLocked || state.hoveredDish || state.centerpieceActiveDish) {
     unlockAndResume();
   }
-  const targetIndex = (state.currentFrontIndex + direction + TOTAL_CARDS) % TOTAL_CARDS;
+  const targetIndex = (state.currentFrontIndex + direction + totalCards) % totalCards;
   rotateToDishIndex(targetIndex);
 }
 
@@ -665,13 +676,94 @@ els.btnPrevDish.addEventListener('click', () => stepDish(-1));
 els.btnNextDish.addEventListener('click', () => stepDish(1));
 
 function rotateToDishIndex(targetIdx) {
-  let desired = -(targetIdx * ANGLE_STEP);
+  let desired = -(targetIdx * angleStep);
   const cycle = Math.round((state.currentAngle - desired) / 360);
   desired += cycle * 360;
 
   state.targetAngle = desired;
   state.isTargetAnimating = true;
   state.isPaused = true;
+}
+
+// ============================================================================
+// Curated Diet Filter System (All / Veg / Non-Veg)
+// ============================================================================
+function setDietFilter(filter) {
+  if (state.dietFilter === filter && filter !== 'all') {
+    // Tapping the active filter toggles back to 'all'
+    filter = 'all';
+  }
+  if (state.dietFilter === filter) return;
+
+  state.dietFilter = filter;
+  currentDishes = getFilteredDishes();
+  totalCards = currentDishes.length;
+  angleStep = 360 / totalCards;
+
+  // Update button UI state
+  if (els.dietFilterBtns) {
+    els.dietFilterBtns.forEach(btn => {
+      const isActive = btn.dataset.filter === filter;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
+  }
+
+  // Audio feedback
+  initAudio();
+  playChimeSound();
+
+  // Gentle 3D stage transition
+  els.ringRotator.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+  els.ringRotator.style.opacity = '0.15';
+
+  setTimeout(() => {
+    // Preserve current dish if it exists in the newly filtered list
+    let newFrontIndex = 0;
+    const activeDish = state.centerpieceActiveDish || state.lockedDish;
+    if (activeDish) {
+      const foundIdx = currentDishes.findIndex(d => d.id === activeDish.id);
+      if (foundIdx !== -1) {
+        newFrontIndex = foundIdx;
+      }
+    }
+
+    state.currentFrontIndex = newFrontIndex;
+    state.currentAngle = -(newFrontIndex * angleStep);
+    state.targetAngle = state.currentAngle;
+    state.isTargetAnimating = false;
+    state.currentSpeed = 0;
+
+    buildFoodRing();
+
+    const frontDish = currentDishes[newFrontIndex] || currentDishes[0];
+    state.centerpieceActiveDish = frontDish;
+    if (state.isLocked) {
+      state.lockedDish = frontDish;
+    }
+    updateHeroSpotlight(frontDish);
+    updatePlatedCenterpiece(frontDish);
+    updateActiveCardHighlight();
+
+    els.ringRotator.style.opacity = '1';
+    setTimeout(() => {
+      els.ringRotator.style.transition = '';
+    }, 220);
+
+    let toastText = 'Showing all 44 dishes';
+    if (filter === 'veg') toastText = `Showing ${totalCards} Vegetarian dishes`;
+    if (filter === 'non-veg') toastText = `Showing ${totalCards} Non-Vegetarian dishes`;
+    showToast(toastText);
+  }, 190);
+}
+
+// Attach Diet Filter Listeners
+if (els.dietFilterBtns) {
+  els.dietFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setDietFilter(btn.dataset.filter);
+    });
+  });
 }
 
 // ============================================================================
@@ -703,7 +795,7 @@ function setOrderMode(mode) {
     showToast('Takeout Mode');
   }
 
-  updateHeroSpotlight(DISHES[state.currentFrontIndex]);
+  updateHeroSpotlight(currentDishes[state.currentFrontIndex] || currentDishes[0]);
   renderOrderDrawer();
 }
 
@@ -746,7 +838,7 @@ function updateItemQuantity(dishId, delta) {
   updateOrderBadge();
   renderOrderDrawer();
 
-  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
   if (currentDish && currentDish.id === dishId) {
     updateCenterpieceAddButton(currentDish);
   }
@@ -757,7 +849,7 @@ function removeItemFromOrder(dishId) {
   updateOrderBadge();
   renderOrderDrawer();
 
-  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
   if (currentDish && currentDish.id === dishId) {
     updateCenterpieceAddButton(currentDish);
   }
@@ -877,7 +969,7 @@ els.checkoutBtn.addEventListener('click', () => {
   updateOrderBadge();
   renderOrderDrawer();
 
-  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || DISHES[state.currentFrontIndex];
+  const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
   if (currentDish) {
     updateCenterpieceAddButton(currentDish);
   }
@@ -939,10 +1031,19 @@ function renderSearchResults(query) {
 
     item.addEventListener('click', () => {
       closeSearch();
-      rotateToDishIndex(dish.id - 1);
+      // If dish is not in current diet filter, switch to 'all' so card is on ring
+      if (!currentDishes.some(d => d.id === dish.id)) {
+        setDietFilter('all');
+      }
       setTimeout(() => {
-        lockOnDish(dish, true);
-      }, 450);
+        const dishIndex = currentDishes.findIndex(d => d.id === dish.id);
+        if (dishIndex !== -1) {
+          rotateToDishIndex(dishIndex);
+          setTimeout(() => {
+            lockOnDish(dish, true);
+          }, 450);
+        }
+      }, 50);
     });
 
     els.searchResultsList.appendChild(item);
@@ -1011,6 +1112,7 @@ function showToast(message) {
 
 document.getElementById('brandHome').addEventListener('click', (e) => {
   e.preventDefault();
+  setDietFilter('all');
   rotateToDishIndex(0);
 });
 

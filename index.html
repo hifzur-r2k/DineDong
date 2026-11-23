@@ -122,30 +122,48 @@
         </div>
       </section>
 
-      <!-- Minimalist Frameless Bottom Controls: Cluster of 3 Circular Icon Buttons (‹, ‖ / ›, ›) -->
+      <!-- Minimalist Frameless Bottom Controls: Curated Diet Pill + Circular Nav Buttons -->
       <section class="bottom-controls-bar" aria-label="Showcase Controls">
-        <div class="ring-nav-cluster">
-          <button type="button" class="ctrl-circle-btn" id="btnPrevDish" title="Previous Dish" aria-label="Previous Dish">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="15 18 9 12 15 6"/>
-            </svg>
-          </button>
+        <div class="bottom-controls-cluster">
+          <!-- Curated Diet Filter Pill (All / Veg / Non-Veg) -->
+          <div class="diet-filter-pill" id="dietFilterPill" role="radiogroup" aria-label="Filter dishes by diet">
+            <button type="button" class="diet-filter-btn active" data-filter="all" id="btnFilterAll" role="radio" aria-checked="true">
+              All
+            </button>
+            <button type="button" class="diet-filter-btn" data-filter="veg" id="btnFilterVeg" role="radio" aria-checked="false">
+              <span class="diet-btn-icon veg" aria-hidden="true"><span class="diet-dot"></span></span>
+              <span>Veg</span>
+            </button>
+            <button type="button" class="diet-filter-btn" data-filter="non-veg" id="btnFilterNonVeg" role="radio" aria-checked="false">
+              <span class="diet-btn-icon non-veg" aria-hidden="true"><span class="diet-dot"></span></span>
+              <span>Non-Veg</span>
+            </button>
+          </div>
 
-          <button type="button" class="ctrl-circle-btn ctrl-play-btn" id="btnPauseRotation" title="Toggle Auto-Rotation" aria-label="Toggle Auto-Rotation">
-            <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="7" y="5" width="3.2" height="14" rx="1"/>
-              <rect x="13.8" y="5" width="3.2" height="14" rx="1"/>
-            </svg>
-            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-              <polygon points="8 5 19 12 8 19 8 5"/>
-            </svg>
-          </button>
+          <!-- Circular Navigation Controls (‹, ‖ / ›, ›) -->
+          <div class="ring-nav-cluster">
+            <button type="button" class="ctrl-circle-btn" id="btnPrevDish" title="Previous Dish" aria-label="Previous Dish">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"/>
+              </svg>
+            </button>
 
-          <button type="button" class="ctrl-circle-btn" id="btnNextDish" title="Next Dish" aria-label="Next Dish">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
+            <button type="button" class="ctrl-circle-btn ctrl-play-btn" id="btnPauseRotation" title="Toggle Auto-Rotation" aria-label="Toggle Auto-Rotation">
+              <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="7" y="5" width="3.2" height="14" rx="1"/>
+                <rect x="13.8" y="5" width="3.2" height="14" rx="1"/>
+              </svg>
+              <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+                <polygon points="8 5 19 12 8 19 8 5"/>
+              </svg>
+            </button>
+
+            <button type="button" class="ctrl-circle-btn" id="btnNextDish" title="Next Dish" aria-label="Next Dish">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </section>
 
