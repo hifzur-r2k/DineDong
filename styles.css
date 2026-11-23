@@ -489,6 +489,29 @@ body {
   -webkit-user-drag: none;
 }
 
+/* Subtle terracotta mini badge on 3D rotating cards indicating items in cart */
+.card-cart-badge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--accent-saffron);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-size: 8.5px;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #FFFFFF;
+  box-shadow: 0 1px 4px rgba(24, 23, 21, 0.4);
+  pointer-events: none;
+  z-index: 5;
+  animation: badgePop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Single Enlarged Card: Pure size increase (scale 1.15) + soft neutral drop shadow */
 .food-card.is-active-enlarged .food-card-inner {
   transform: scale(1.15);
@@ -660,6 +683,290 @@ body {
   100% {
     transform: scale(1);
   }
+}
+
+/* Centerpiece Stepper Pill (Minus / Count / Plus) */
+.centerpiece-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-saffron);
+  border-radius: 9999px;
+  padding: 2px 4px;
+  box-shadow: 0 2px 10px rgba(196, 76, 39, 0.45);
+  user-select: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.centerpiece-stepper.tap-bump {
+  animation: btnTapBump 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.centerpiece-stepper-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, transform 0.12s ease;
+  user-select: none;
+}
+
+.centerpiece-stepper-btn:hover {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.centerpiece-stepper-btn:active {
+  transform: scale(0.9);
+}
+
+.centerpiece-qty-val {
+  min-width: 20px;
+  text-align: center;
+  font-family: var(--font-main);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+  padding: 0 2px;
+}
+
+/* ==========================================================================
+   Homepage Selected Dishes Quick Tray (Uncluttered, Instant Steppers, Tap-to-Focus)
+   ========================================================================== */
+.homepage-order-tray {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: min(840px, 94vw);
+  margin: 6px auto 4px;
+  position: relative;
+  z-index: 38;
+  animation: traySlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes traySlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.tray-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-hairline);
+  border-radius: 9999px;
+  padding: 4px 6px 4px 12px;
+  box-shadow: 0 4px 20px rgba(24, 23, 21, 0.07), 0 1px 3px rgba(24, 23, 21, 0.04);
+  box-sizing: border-box;
+}
+
+.tray-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.tray-count-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-saffron);
+  background: rgba(224, 90, 50, 0.1);
+  padding: 2.5px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.tray-total-price {
+  font-family: var(--font-main);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tray-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-hairline);
+  flex-shrink: 0;
+}
+
+.tray-chips-scroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  padding: 1px 2px;
+}
+
+.tray-chips-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tray-dish-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  border: 1px solid rgba(24, 23, 21, 0.08);
+  border-radius: 9999px;
+  padding: 2px 4px 2px 2px;
+  box-shadow: 0 1px 4px rgba(24, 23, 21, 0.04);
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tray-dish-chip:hover {
+  border-color: rgba(224, 90, 50, 0.4);
+  box-shadow: 0 2px 8px rgba(224, 90, 50, 0.12);
+}
+
+.tray-chip-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.tray-chip-thumb:hover {
+  transform: scale(1.08);
+}
+
+.tray-chip-meta {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  max-width: 100px;
+  min-width: 0;
+}
+
+.tray-chip-name {
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.tray-chip-price {
+  font-family: var(--font-main);
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.tray-chip-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  background: rgba(24, 23, 21, 0.05);
+  border-radius: 9999px;
+  padding: 1px 2px;
+  flex-shrink: 0;
+}
+
+.tray-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+.tray-chip-btn:hover {
+  background: rgba(24, 23, 21, 0.12);
+  color: var(--accent-saffron);
+}
+
+.tray-chip-btn:active {
+  transform: scale(0.9);
+}
+
+.tray-chip-qty {
+  min-width: 13px;
+  text-align: center;
+  font-family: var(--font-main);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tray-cart-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--text-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
+
+.tray-cart-action-btn:hover {
+  background: #000000;
+  transform: translateY(-1px);
+}
+
+.tray-cart-action-btn svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
 }
 
 /* ==========================================================================
@@ -1242,7 +1549,7 @@ body {
 /* Toast Notice: Positioned cleanly above bottom filter bar & controls */
 .toast-notice {
   position: fixed;
-  bottom: 76px;
+  bottom: 84px;
   left: 50%;
   transform: translateX(-50%) translateY(16px);
   background: var(--text-primary);
@@ -1423,6 +1730,64 @@ body {
     font-size: 10.5px;
   }
 
+  .centerpiece-stepper {
+    padding: 1.5px 3px;
+  }
+
+  .centerpiece-stepper-btn {
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
+  }
+
+  .centerpiece-qty-val {
+    font-size: 10.5px;
+    min-width: 17px;
+  }
+
+  .homepage-order-tray {
+    max-width: 96vw;
+    margin: 4px auto 2px;
+  }
+
+  .tray-container {
+    padding: 3px 5px 3px 9px;
+    gap: 6px;
+  }
+
+  .tray-count-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .tray-total-price {
+    font-size: 12px;
+  }
+
+  .tray-chip-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tray-chip-meta {
+    max-width: 75px;
+  }
+
+  .tray-chip-name {
+    font-size: 10px;
+  }
+
+  .tray-chip-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+
+  .tray-cart-action-btn {
+    padding: 5px 9px;
+    font-size: 10px;
+  }
+
   .bottom-controls-bar {
     padding: 4px 0 2px;
   }
@@ -1443,7 +1808,7 @@ body {
   }
 
   .toast-notice {
-    bottom: 92px;
+    bottom: 96px;
     font-size: 11px;
     padding: 6px 14px;
   }

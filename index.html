@@ -106,12 +106,17 @@
             <img src="" alt="" class="centerpiece-img plate-img-a active" id="centerpieceImgA" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80&auto=format&fit=crop'" />
             <img src="" alt="" class="centerpiece-img plate-img-b" id="centerpieceImgB" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80&auto=format&fit=crop'" />
 
-            <!-- Floating Price & + Add Button directly on the image -->
+            <!-- Floating Price, + Add Button & Stepper directly on the image -->
             <div class="centerpiece-bottom-bar" id="centerpieceBottomBar">
               <span class="centerpiece-price" id="centerpiecePrice">₹120</span>
-              <button type="button" class="centerpiece-add-btn" id="centerpieceAddBtn" aria-label="Add Mumbai Masala Vada Pav to Order">
+              <button type="button" class="centerpiece-add-btn" id="centerpieceAddBtn" aria-label="Add to Order">
                 <span>+ Add</span>
               </button>
+              <div class="centerpiece-stepper" id="centerpieceStepper" style="display: none;" role="group" aria-label="Adjust dish quantity">
+                <button type="button" class="centerpiece-stepper-btn minus" id="centerpieceMinusBtn" aria-label="Decrease quantity" title="Decrease quantity">&minus;</button>
+                <span class="centerpiece-qty-val" id="centerpieceQtyVal">1</span>
+                <button type="button" class="centerpiece-stepper-btn plus" id="centerpiecePlusBtn" aria-label="Increase quantity" title="Increase quantity">&plus;</button>
+              </div>
             </div>
           </div>
 
@@ -119,6 +124,34 @@
           <div class="ring-rotator" id="ringRotator">
             <!-- 44 Pure Photo Cards injected dynamically via app.js -->
           </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           Homepage Selected Dishes Quick-Tray (Uncluttered, Instant Steppers, Tap-to-Focus)
+           ==================================================================== -->
+      <section class="homepage-order-tray" id="homepageOrderTray" aria-label="Selected Dishes Overview" style="display: none;">
+        <div class="tray-container">
+          <!-- Real-Time Order Overview Tag -->
+          <div class="tray-summary" id="traySummary">
+            <span class="tray-count-tag" id="trayCountTag">0 Items</span>
+            <span class="tray-total-price" id="trayTotalPrice">₹0</span>
+          </div>
+
+          <span class="tray-divider" aria-hidden="true"></span>
+
+          <!-- Horizontal Carousel of Selected Dish Chips with Inline Steppers -->
+          <div class="tray-chips-scroll" id="trayChipsScroll" role="list" aria-label="Selected dish items">
+            <!-- Dynamically populated via app.js -->
+          </div>
+
+          <!-- Quick View Cart Action -->
+          <button type="button" class="tray-cart-action-btn" id="trayCartActionBtn" aria-label="View Order Cart">
+            <span>View Cart</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
         </div>
       </section>
 

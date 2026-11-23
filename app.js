@@ -75,7 +75,18 @@ const els = {
   centerpieceImg: document.getElementById('centerpieceImg'),
   centerpiecePrice: document.getElementById('centerpiecePrice'),
   centerpieceAddBtn: document.getElementById('centerpieceAddBtn'),
+  centerpieceStepper: document.getElementById('centerpieceStepper'),
+  centerpieceMinusBtn: document.getElementById('centerpieceMinusBtn'),
+  centerpiecePlusBtn: document.getElementById('centerpiecePlusBtn'),
+  centerpieceQtyVal: document.getElementById('centerpieceQtyVal'),
   centerpieceCloseBtn: document.getElementById('centerpieceCloseBtn'),
+
+  // Homepage Selected Dishes Quick Tray
+  homepageOrderTray: document.getElementById('homepageOrderTray'),
+  trayCountTag: document.getElementById('trayCountTag'),
+  trayTotalPrice: document.getElementById('trayTotalPrice'),
+  trayChipsScroll: document.getElementById('trayChipsScroll'),
+  trayCartActionBtn: document.getElementById('trayCartActionBtn'),
 
   // Controls Bar & Curated Diet Pill
   dietFilterPill: document.getElementById('dietFilterPill'),
@@ -214,9 +225,11 @@ function buildFoodRing() {
       <div class="food-card-inner">
         <div class="card-face card-front">
           <img src="${thumbUrl}" alt="${dish.name}" class="card-img" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
+          <span class="card-cart-badge" style="display:none;"></span>
         </div>
         <div class="card-face card-back">
           <img src="${thumbUrl}" alt="${dish.name}" class="card-img" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
+          <span class="card-cart-badge" style="display:none;"></span>
         </div>
       </div>
     `;
@@ -248,6 +261,23 @@ function buildFoodRing() {
   els.ringStage.style.transform = `rotateX(-18deg)`;
   updatePlatedCenterpiece(currentDishes[state.currentFrontIndex] || currentDishes[0]);
   updateActiveCardHighlight();
+  updateRingCartBadges();
+}
+
+function updateRingCartBadges() {
+  cardElements.forEach(card => {
+    const dishId = card.dataset.dishId;
+    const cartItem = state.cart.get(dishId);
+    const badges = card.querySelectorAll('.card-cart-badge');
+    badges.forEach(b => {
+      if (cartItem && cartItem.quantity > 0) {
+        b.textContent = cartItem.quantity;
+        b.style.display = 'flex';
+      } else {
+        b.style.display = 'none';
+      }
+    });
+  });
 }
 
 // Window resize handler: update ring radius
@@ -369,20 +399,33 @@ let currentPlateImg = 'a';
 let currentPlateDishId = null;
 let hoverDismissTimer = null;
 
-// Dynamic Add Button state synced with Order Cart
+// Dynamic Add Button & Stepper state synced with Order Cart
 function updateCenterpieceAddButton(dish) {
-  if (!els.centerpieceAddBtn || !dish) return;
+  if (!dish) return;
   const inCart = state.cart.get(dish.id);
   const qty = inCart ? inCart.quantity : 0;
 
   if (qty > 0) {
-    els.centerpieceAddBtn.innerHTML = `<span>+ Add (${qty})</span>`;
-    els.centerpieceAddBtn.classList.add('has-items');
-    els.centerpieceAddBtn.setAttribute('aria-label', `Add another ${dish.name} to Order (${qty} currently in order)`);
+    if (els.centerpieceAddBtn) {
+      els.centerpieceAddBtn.style.display = 'none';
+    }
+    if (els.centerpieceStepper) {
+      els.centerpieceStepper.style.display = 'inline-flex';
+      if (els.centerpieceQtyVal) {
+        els.centerpieceQtyVal.textContent = qty;
+      }
+      els.centerpieceStepper.setAttribute('aria-label', `${dish.name}: ${qty} in order. Adjust quantity`);
+    }
   } else {
-    els.centerpieceAddBtn.innerHTML = `<span>+ Add</span>`;
-    els.centerpieceAddBtn.classList.remove('has-items');
-    els.centerpieceAddBtn.setAttribute('aria-label', `Add ${dish.name} to Order`);
+    if (els.centerpieceStepper) {
+      els.centerpieceStepper.style.display = 'none';
+    }
+    if (els.centerpieceAddBtn) {
+      els.centerpieceAddBtn.style.display = 'inline-flex';
+      els.centerpieceAddBtn.innerHTML = `<span>+ Add</span>`;
+      els.centerpieceAddBtn.classList.remove('has-items');
+      els.centerpieceAddBtn.setAttribute('aria-label', `Add ${dish.name} to Order`);
+    }
   }
 }
 
@@ -508,8 +551,8 @@ if (els.centerpieceCard) {
 
   // Click on centerpiece card image to toggle lock or unlock
   els.centerpieceCard.addEventListener('click', (e) => {
-    // If clicking on Add Button or inside bottom bar, don't toggle lock
-    if (e.target.closest('#centerpieceAddBtn') || e.target.closest('.centerpiece-bottom-bar')) return;
+    // If clicking on Add Button, Stepper, or inside bottom bar, don't toggle lock
+    if (e.target.closest('#centerpieceAddBtn') || e.target.closest('#centerpieceStepper') || e.target.closest('.centerpiece-bottom-bar')) return;
     e.stopPropagation();
     if (state.isLocked || state.hoveredDish) {
       unlockAndResume();
@@ -520,7 +563,7 @@ if (els.centerpieceCard) {
   });
 }
 
-// Centerpiece Add Button: adds active/featured dish directly to order & allows adding multiple times
+// Centerpiece Add Button: adds active/featured dish directly to order
 if (els.centerpieceAddBtn) {
   els.centerpieceAddBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -535,7 +578,7 @@ if (els.centerpieceAddBtn) {
     state.lockedDish = currentDish;
     state.centerpieceActiveDish = currentDish;
 
-    // Add 1 more of this dish to the order
+    // Add 1 of this dish to the order
     addToOrder(currentDish, 1);
 
     // Keep active card highlight firmly on this dish
@@ -545,6 +588,56 @@ if (els.centerpieceAddBtn) {
     els.centerpieceAddBtn.classList.remove('tap-bump');
     void els.centerpieceAddBtn.offsetWidth;
     els.centerpieceAddBtn.classList.add('tap-bump');
+  });
+}
+
+// Centerpiece Stepper Plus Button (+): increments quantity directly on centerpiece
+if (els.centerpiecePlusBtn) {
+  els.centerpiecePlusBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
+    if (!currentDish) return;
+
+    state.isPinnedByClick = true;
+    state.isLocked = true;
+    state.isPaused = true;
+    state.currentSpeed = 0;
+    state.lockedDish = currentDish;
+    state.centerpieceActiveDish = currentDish;
+
+    addToOrder(currentDish, 1);
+    updateActiveCardHighlight();
+
+    if (els.centerpieceStepper) {
+      els.centerpieceStepper.classList.remove('tap-bump');
+      void els.centerpieceStepper.offsetWidth;
+      els.centerpieceStepper.classList.add('tap-bump');
+    }
+  });
+}
+
+// Centerpiece Stepper Minus Button (−): decrements quantity or removes directly from centerpiece
+if (els.centerpieceMinusBtn) {
+  els.centerpieceMinusBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
+    if (!currentDish) return;
+
+    state.isPinnedByClick = true;
+    state.isLocked = true;
+    state.isPaused = true;
+    state.currentSpeed = 0;
+    state.lockedDish = currentDish;
+    state.centerpieceActiveDish = currentDish;
+
+    updateItemQuantity(currentDish.id, -1);
+    updateActiveCardHighlight();
+
+    if (els.centerpieceStepper) {
+      els.centerpieceStepper.classList.remove('tap-bump');
+      void els.centerpieceStepper.offsetWidth;
+      els.centerpieceStepper.classList.add('tap-bump');
+    }
   });
 }
 
@@ -558,7 +651,12 @@ if (els.centerpieceCloseBtn) {
 
 // Dismiss / unlock when clicking anywhere outside
 document.addEventListener('click', (e) => {
-  if (!e.target.closest('#centerpieceCard') && !e.target.closest('.food-card') && !e.target.closest('.ctrl-circle-btn') && !e.target.closest('.order-drawer') && !e.target.closest('.cart-nav-btn')) {
+  if (!e.target.closest('#centerpieceCard') && 
+      !e.target.closest('.food-card') && 
+      !e.target.closest('.ctrl-circle-btn') && 
+      !e.target.closest('.order-drawer') && 
+      !e.target.closest('.cart-nav-btn') &&
+      !e.target.closest('#homepageOrderTray')) {
     if (state.isLocked || state.hoveredDish || state.isPinnedByClick) {
       unlockAndResume();
     }
@@ -878,6 +976,10 @@ function updateOrderBadge() {
   els.orderCountBadge.classList.remove('bump');
   void els.orderCountBadge.offsetWidth;
   els.orderCountBadge.classList.add('bump');
+
+  // Keep homepage selected dishes quick-tray and 3D ring badges in sync
+  renderHomepageOrderTray();
+  updateRingCartBadges();
 }
 
 function renderOrderDrawer() {
@@ -943,6 +1045,100 @@ function renderOrderDrawer() {
   els.billGst.textContent = `₹${gst}`;
   els.billTotal.textContent = `₹${grandTotal}`;
   els.checkoutBtn.disabled = false;
+}
+
+// ============================================================================
+// Homepage Selected Dishes Quick Tray (Adaptive, Uncluttered, Tap-to-Focus)
+// ============================================================================
+function renderHomepageOrderTray() {
+  if (!els.homepageOrderTray) return;
+  const items = Array.from(state.cart.values());
+
+  if (items.length === 0) {
+    els.homepageOrderTray.style.display = 'none';
+    if (els.trayChipsScroll) els.trayChipsScroll.innerHTML = '';
+    return;
+  }
+
+  els.homepageOrderTray.style.display = 'flex';
+
+  const totalDishCount = items.length;
+  const totalCount = items.reduce((sum, it) => sum + it.quantity, 0);
+  const subtotal = items.reduce((sum, it) => sum + it.dish.price * it.quantity, 0);
+
+  if (els.trayCountTag) {
+    els.trayCountTag.textContent = `${totalDishCount} ${totalDishCount === 1 ? 'Dish' : 'Dishes'} (${totalCount})`;
+  }
+  if (els.trayTotalPrice) {
+    els.trayTotalPrice.textContent = `₹${subtotal}`;
+  }
+
+  if (!els.trayChipsScroll) return;
+  els.trayChipsScroll.innerHTML = '';
+
+  items.forEach(({ dish, quantity }) => {
+    const chip = document.createElement('div');
+    chip.className = 'tray-dish-chip';
+    chip.dataset.dishId = dish.id;
+    chip.setAttribute('role', 'listitem');
+    chip.innerHTML = `
+      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="tray-chip-thumb" title="Focus ${dish.name} on 3D ring" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
+      <div class="tray-chip-meta" title="Focus ${dish.name} on 3D ring">
+        <span class="tray-chip-name">${dish.name}</span>
+        <span class="tray-chip-price">₹${dish.price}</span>
+      </div>
+      <div class="tray-chip-stepper">
+        <button type="button" class="tray-chip-btn minus" aria-label="Decrease ${dish.name}">&minus;</button>
+        <span class="tray-chip-qty">${quantity}</span>
+        <button type="button" class="tray-chip-btn plus" aria-label="Increase ${dish.name}">&plus;</button>
+      </div>
+    `;
+
+    // Clicking thumbnail or meta focuses this dish on the 3D ring
+    const focusTargetEls = [chip.querySelector('.tray-chip-thumb'), chip.querySelector('.tray-chip-meta')];
+    focusTargetEls.forEach(el => {
+      if (!el) return;
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // If dish is not in current filter, switch to 'all' so it exists on the ring
+        if (currentDishes.findIndex(d => d.id === dish.id) === -1) {
+          setDietFilter('all');
+        }
+        const targetIdx = currentDishes.findIndex(d => d.id === dish.id);
+        if (targetIdx !== -1) {
+          rotateToDishIndex(targetIdx);
+          lockOnDish(dish, true);
+        }
+      });
+    });
+
+    // Inline Chip Stepper Minus
+    const btnMinus = chip.querySelector('.tray-chip-btn.minus');
+    if (btnMinus) {
+      btnMinus.addEventListener('click', (e) => {
+        e.stopPropagation();
+        updateItemQuantity(dish.id, -1);
+      });
+    }
+
+    // Inline Chip Stepper Plus
+    const btnPlus = chip.querySelector('.tray-chip-btn.plus');
+    if (btnPlus) {
+      btnPlus.addEventListener('click', (e) => {
+        e.stopPropagation();
+        addToOrder(dish, 1);
+      });
+    }
+
+    els.trayChipsScroll.appendChild(chip);
+  });
+}
+
+if (els.trayCartActionBtn) {
+  els.trayCartActionBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openDrawer();
+  });
 }
 
 function openDrawer() {
