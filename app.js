@@ -688,20 +688,17 @@ function rotateToDishIndex(targetIdx) {
 // ============================================================================
 // Curated Diet Filter System (All / Veg / Non-Veg)
 // ============================================================================
-let isFilterSwitching = false;
-
 function setDietFilter(filter) {
-  if (isFilterSwitching) return;
   if (state.dietFilter === filter && filter !== 'all') {
     // Tapping the active filter toggles back to 'all'
     filter = 'all';
   }
   if (state.dietFilter === filter) return;
 
-  isFilterSwitching = true;
   state.dietFilter = filter;
   const newDishes = getFilteredDishes();
   const newTotal = newDishes.length;
+  if (newTotal === 0) return;
   const newAngleStep = 360 / newTotal;
 
   // 1. Instantly update button UI state
@@ -717,83 +714,55 @@ function setDietFilter(filter) {
   initAudio();
   playChimeSound();
 
-  // 3. Pause auto-rotation immediately so ring doesn't drift during switch
-  const wasRotating = !state.isPaused && !state.isManualPaused && !state.isLocked;
-  state.isPaused = true;
-  state.currentSpeed = 0;
+  // 3. Determine target front dish safely:
+  // Check if current active/locked dish is present in the newly filtered list
+  const currentActive = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish;
+  let targetIndex = -1;
+  if (currentActive) {
+    targetIndex = newDishes.findIndex(d => d.id === currentActive.id);
+  }
 
-  // 4. Smooth opacity fade-out of the ring cards (ONLY opacity, never transform!)
-  els.ringRotator.style.transition = 'opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1)';
-  els.ringRotator.style.opacity = '0';
-
-  setTimeout(() => {
-    // 5. Determine which dish should be front-facing in the new list
-    let normalized = (-state.currentAngle) % 360;
-    if (normalized < 0) normalized += 360;
-
-    const currentDishId = (state.centerpieceActiveDish || state.lockedDish)?.id;
-    let targetDishIndex = newDishes.findIndex(d => d.id === currentDishId);
-
-    // If active dish is not in new list, pick the geographically nearest dish on the ring
-    if (targetDishIndex === -1) {
-      let bestIdx = 0;
-      let bestDist = 360;
-      for (let i = 0; i < newTotal; i++) {
-        let cardAngle = i * newAngleStep;
-        let dist = Math.abs((normalized - cardAngle + 540) % 360 - 180);
-        if (dist < bestDist) {
-          bestDist = dist;
-          bestIdx = i;
-        }
-      }
-      targetDishIndex = bestIdx;
-    }
-
-    // 6. Smoothly adjust currentAngle to align with targetDish without spinning cycles
-    let targetAngle = -(targetDishIndex * newAngleStep);
-    let diff = (state.currentAngle - targetAngle) % 360;
-    if (diff > 180) diff -= 360;
-    if (diff < -180) diff += 360;
+  if (targetIndex !== -1) {
+    // Current dish exists in new filter: preserve it in front with shortest angular shift
+    const targetAngle = -(targetIndex * newAngleStep);
+    const diff = ((state.currentAngle - targetAngle) % 360 + 540) % 360 - 180;
     state.currentAngle = state.currentAngle - diff;
-    state.targetAngle = state.currentAngle;
-    state.isTargetAnimating = false;
-    state.currentSpeed = 0;
+  } else {
+    // Current dish does not belong to new filter: safely reset to first item
+    targetIndex = 0;
+    state.isLocked = false;
+    state.isPinnedByClick = false;
+    state.lockedDish = null;
+    state.hoveredDish = null;
+    state.currentAngle = 0;
+  }
 
-    // 7. Update globals and rebuild DOM
-    currentDishes = newDishes;
-    totalCards = newTotal;
-    angleStep = newAngleStep;
-    state.currentFrontIndex = targetDishIndex;
+  // 4. Update data state
+  currentDishes = newDishes;
+  totalCards = newTotal;
+  angleStep = newAngleStep;
+  state.currentFrontIndex = targetIndex;
+  state.targetAngle = state.currentAngle;
+  state.isTargetAnimating = false;
 
-    buildFoodRing();
+  // 5. Rebuild 3D ring cards with preserved 3D circular geometry & radius
+  buildFoodRing();
 
-    // 8. Update showcase & spotlight to the new front dish
-    const frontDish = newDishes[targetDishIndex] || newDishes[0];
-    state.centerpieceActiveDish = frontDish;
-    if (state.isLocked) {
-      state.lockedDish = frontDish;
-    }
-    updateHeroSpotlight(frontDish);
-    updatePlatedCenterpiece(frontDish);
-    updateActiveCardHighlight();
+  // 6. Safely re-index hero spotlight & centerpiece showcase
+  const frontDish = newDishes[targetIndex] || newDishes[0];
+  state.centerpieceActiveDish = frontDish;
+  if (state.isLocked) {
+    state.lockedDish = frontDish;
+  }
+  updateHeroSpotlight(frontDish);
+  updatePlatedCenterpiece(frontDish);
+  updateActiveCardHighlight();
 
-    // 9. Smoothly fade the ring cards back in
-    els.ringRotator.style.opacity = '1';
-
-    setTimeout(() => {
-      els.ringRotator.style.transition = '';
-      isFilterSwitching = false;
-      if (wasRotating && !state.isManualPaused && !state.isLocked && !state.isCenterpieceHovered) {
-        state.isPaused = false;
-      }
-    }, 200);
-
-    // 10. Minimal luxury toast message
-    let toastText = 'Showing all 44 dishes';
-    if (filter === 'veg') toastText = `Showing ${totalCards} Vegetarian dishes`;
-    if (filter === 'non-veg') toastText = `Showing ${totalCards} Non-Vegetarian dishes`;
-    showToast(toastText);
-  }, 180);
+  // 7. Minimal toast notification (positioned cleanly above bottom filter bar)
+  let toastText = 'Showing all 44 dishes';
+  if (filter === 'veg') toastText = `Showing ${totalCards} Vegetarian dishes`;
+  if (filter === 'non-veg') toastText = `Showing ${totalCards} Non-Vegetarian dishes`;
+  showToast(toastText);
 }
 
 // Attach Diet Filter Listeners
