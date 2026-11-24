@@ -524,19 +524,19 @@ body {
    ========================================================================== */
 .centerpiece-frame {
   position: absolute;
-  top: 45%;
+  top: 44%;
   left: 50%;
   transform-origin: center center;
   width: 220px;
-  height: 320px;
-  border-radius: 18px;
+  height: 360px;
+  border-radius: 20px;
   border: 2px solid #FFFFFF;
   background: #EAE6DE;
-  box-shadow: 0 20px 50px rgba(24, 23, 21, 0.16), 0 4px 14px rgba(24, 23, 21, 0.06);
+  box-shadow: 0 24px 54px rgba(24, 23, 21, 0.18), 0 4px 14px rgba(24, 23, 21, 0.06);
   overflow: hidden;
   transform-style: preserve-3d;
-  /* Centered at 45% and counter-rotated (+18deg) to face user upright */
-  transform: translate3d(-50%, -50%, 0) rotateX(18deg);
+  /* Centered, pushed slightly back (-40px Z) to sit deeper in ring, and counter-rotated (+18deg) */
+  transform: translate3d(-50%, -50%, -40px) rotateX(18deg);
   pointer-events: auto;
   cursor: pointer;
   z-index: 10;
@@ -544,7 +544,8 @@ body {
 }
 
 .centerpiece-frame:hover {
-  box-shadow: 0 24px 60px rgba(24, 23, 21, 0.2), 0 6px 18px rgba(24, 23, 21, 0.08);
+  transform: translate3d(-50%, -50%, -30px) rotateX(18deg);
+  box-shadow: 0 28px 64px rgba(24, 23, 21, 0.22), 0 6px 18px rgba(24, 23, 21, 0.08);
 }
 
 /* Single Veg / Non-Veg Indicator Icon Badge */
@@ -1470,36 +1471,6 @@ body {
   font-size: 13px;
 }
 
-/* Toast Notice: Positioned cleanly above bottom floating cart pill & controls */
-.toast-notice {
-  position: fixed;
-  bottom: 106px;
-  left: 50%;
-  transform: translateX(-50%) translateY(16px);
-  background: var(--text-primary);
-  color: #FFFFFF;
-  padding: 7px 16px;
-  border-radius: var(--radius-pill);
-  font-family: var(--font-main);
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  box-shadow: 0 8px 24px rgba(24, 23, 21, 0.22), 0 2px 6px rgba(24, 23, 21, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  z-index: 500;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
-}
-
-.toast-notice.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
 /* ==========================================================================
    Responsive Adaptations & Mobile Navbar Fix
    ========================================================================== */
@@ -1611,13 +1582,13 @@ body {
     border-radius: 4px;
   }
 
-  /* Centerpiece Card on Mobile: Increased height, sleek portrait ratio */
+  /* Centerpiece Card on Mobile: Taller portrait ratio, pushed slightly back */
   .centerpiece-frame {
     width: 165px;
-    height: 245px;
+    height: 285px;
     border-radius: 16px;
-    top: 43%;
-    transform: translate3d(-50%, -50%, 0) rotateX(18deg);
+    top: 42%;
+    transform: translate3d(-50%, -50%, -30px) rotateX(18deg);
   }
 
   .centerpiece-diet-badge {
@@ -1725,12 +1696,6 @@ body {
     width: 36px;
     height: 36px;
   }
-
-  .toast-notice {
-    bottom: 120px;
-    font-size: 11px;
-    padding: 6px 14px;
-  }
 }
 
 @media (max-width: 380px) {
@@ -1748,7 +1713,8 @@ body {
   }
   .centerpiece-frame {
     width: 150px;
-    height: 225px;
+    height: 255px;
+    transform: translate3d(-50%, -50%, -25px) rotateX(18deg);
   }
   .ctrl-circle-btn {
     width: 34px;

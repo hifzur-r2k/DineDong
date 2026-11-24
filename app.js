@@ -127,12 +127,10 @@ const els = {
   dishSearchInput: document.getElementById('dishSearchInput'),
   searchResultsList: document.getElementById('searchResultsList'),
 
-  // Sound Toggle & Toast
+  // Sound Toggle
   soundToggleBtn: document.getElementById('soundToggleBtn'),
   soundOnIcon: document.getElementById('soundOnIcon'),
-  soundOffIcon: document.getElementById('soundOffIcon'),
-  toastNotice: document.getElementById('toastNotice'),
-  toastMessage: document.getElementById('toastMessage')
+  soundOffIcon: document.getElementById('soundOffIcon')
 };
 
 // ============================================================================
@@ -853,12 +851,6 @@ function setDietFilter(filter) {
   updateHeroSpotlight(frontDish);
   updatePlatedCenterpiece(frontDish);
   updateActiveCardHighlight();
-
-  // 7. Minimal toast notification (positioned cleanly above bottom filter bar)
-  let toastText = 'Showing all 44 dishes';
-  if (filter === 'veg') toastText = `Showing ${totalCards} Vegetarian dishes`;
-  if (filter === 'non-veg') toastText = `Showing ${totalCards} Non-Vegetarian dishes`;
-  showToast(toastText);
 }
 
 // Attach Diet Filter Listeners
@@ -886,7 +878,6 @@ function setOrderMode(mode) {
     els.drawerEstTime.textContent = 'Est. 20-25 mins';
     els.billPackagingLabel.textContent = 'Table Service';
     els.billPackagingAmount.textContent = '₹0';
-    showToast('Dine-In Mode');
   } else {
     els.btnTakeout.classList.add('active');
     els.btnDineIn.classList.remove('active');
@@ -896,7 +887,6 @@ function setOrderMode(mode) {
     els.drawerEstTime.textContent = 'Est. 15-20 mins';
     els.billPackagingLabel.textContent = 'Packaging';
     els.billPackagingAmount.textContent = '₹30';
-    showToast('Takeout Mode');
   }
 
   updateHeroSpotlight(currentDishes[state.currentFrontIndex] || currentDishes[0]);
@@ -925,9 +915,6 @@ function addToOrder(dish, qty = 1) {
   updateOrderBadge(true);
   renderOrderDrawer();
   updateCenterpieceAddButton(dish);
-
-  const toastMsg = totalForDish > 1 ? `Added ${dish.name} (${totalForDish} in order)` : `Added ${dish.name}`;
-  showToast(toastMsg);
 }
 
 function updateItemQuantity(dishId, delta) {
@@ -1259,28 +1246,16 @@ if (els.soundToggleBtn) {
     if (state.soundEnabled) {
       els.soundOnIcon.style.display = 'block';
       els.soundOffIcon.style.display = 'none';
-      showToast('Sound enabled');
       playChimeSound();
     } else {
       els.soundOnIcon.style.display = 'none';
       els.soundOffIcon.style.display = 'block';
-      showToast('Sound muted');
     }
   });
 }
 
-// ============================================================================
-// Toast Notification
-// ============================================================================
-let toastTimer = null;
-function showToast(message) {
-  clearTimeout(toastTimer);
-  els.toastMessage.textContent = message;
-  els.toastNotice.classList.add('show');
-  toastTimer = setTimeout(() => {
-    els.toastNotice.classList.remove('show');
-  }, 2000);
-}
+// Message popup toast removed per user request
+function showToast() {}
 
 document.getElementById('brandHome').addEventListener('click', (e) => {
   e.preventDefault();
