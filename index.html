@@ -263,58 +263,51 @@
       </div>
     </div>
 
-    <!-- Search Drawer (Mobile) / Command Modal (Desktop) -->
+    <!-- Minimalist Instant Search Overlay -->
     <div class="modal-backdrop search-backdrop" id="searchModalBackdrop" aria-hidden="true">
-      <div class="search-panel" role="dialog" aria-modal="true" aria-label="Search Dishes and Quick Menu">
+      <div class="search-panel" id="searchPanel" role="dialog" aria-modal="true" aria-label="Search Dishes">
         
-        <!-- Mobile Drawer Drag Handle -->
-        <div class="search-drawer-handle" aria-hidden="true"></div>
-
-        <!-- Sticky Search Header: Search Input + Quick Category Pills -->
-        <div class="search-sticky-header">
-          <div class="search-input-wrapper">
-            <svg class="search-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        <!-- Search Header Bar: Input + Subtle Diet Switch + Cancel -->
+        <div class="search-header-bar">
+          <div class="search-input-box">
+            <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" class="search-input" id="dishSearchInput" placeholder="Search dishes, ingredients..." autocomplete="off" spellcheck="false" aria-label="Search dishes and ingredients">
-            <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" title="Clear search" style="display: none;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-            <kbd class="search-kbd desktop-only" title="Press Escape to close">ESC</kbd>
-            <button type="button" class="search-close-btn" id="searchCloseBtn" aria-label="Close Search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <input 
+              type="search" 
+              class="search-input" 
+              id="dishSearchInput" 
+              placeholder="Search dishes, drinks, flavors..." 
+              autocomplete="off" 
+              autocapitalize="off" 
+              autocorrect="off" 
+              spellcheck="false" 
+              inputmode="search" 
+              enterkeyhint="search"
+              aria-label="Search dishes and drinks"
+            >
+            <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="display: none;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
 
-          <!-- Quick Category & Diet Filter Pills Ribbon -->
-          <div class="search-filter-pills" id="searchFilterPills" role="radiogroup" aria-label="Quick category filters">
-            <button type="button" class="search-pill active" data-filter="all" role="radio" aria-checked="true">All</button>
-            <button type="button" class="search-pill" data-filter="veg" role="radio" aria-checked="false">
-              <span class="diet-btn-icon veg" aria-hidden="true"><span class="diet-dot"></span></span>
-              <span>Veg</span>
-            </button>
-            <button type="button" class="search-pill" data-filter="non-veg" role="radio" aria-checked="false">
-              <span class="diet-btn-icon non-veg" aria-hidden="true"><span class="diet-dot"></span></span>
-              <span>Non-Veg</span>
-            </button>
-            <span class="search-pill-separator" aria-hidden="true"></span>
-            <button type="button" class="search-pill" data-cat="Street Delights" role="radio" aria-checked="false">Street Delights</button>
-            <button type="button" class="search-pill" data-cat="Biryani & Curries" role="radio" aria-checked="false">Biryani & Curries</button>
-            <button type="button" class="search-pill" data-cat="Burgers & Kebabs" role="radio" aria-checked="false">Burgers & Kebabs</button>
-            <button type="button" class="search-pill" data-cat="Dosas & Breads" role="radio" aria-checked="false">Dosas & Breads</button>
-            <button type="button" class="search-pill" data-cat="Mithai & Desserts" role="radio" aria-checked="false">Mithai & Desserts</button>
-            <button type="button" class="search-pill" data-cat="Desi Coolers & Chai" role="radio" aria-checked="false">Coolers & Chai</button>
+          <!-- Clean 3-way Diet Switch: All / Veg / Non-Veg -->
+          <div class="search-diet-switch" id="searchDietSwitch" role="radiogroup" aria-label="Filter by diet">
+            <button type="button" class="search-diet-btn active" data-filter="all" role="radio" aria-checked="true">All</button>
+            <button type="button" class="search-diet-btn" data-filter="veg" role="radio" aria-checked="false">Veg</button>
+            <button type="button" class="search-diet-btn" data-filter="non-veg" role="radio" aria-checked="false">Non-Veg</button>
           </div>
+
+          <!-- Close / Cancel Button -->
+          <button type="button" class="search-close-btn" id="searchCloseBtn" aria-label="Close search">
+            <span class="search-close-label">Cancel</span>
+            <svg class="search-close-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
         </div>
 
-        <!-- Live Instant Search & Quick Menu Results List -->
+        <!-- Live Results List -->
         <div class="search-results-list" id="searchResultsList" role="list" aria-label="Dishes results"></div>
-
-        <!-- Footer Hint (Desktop Only) -->
-        <div class="search-footer-hint desktop-only">
-          <span>Tap any dish to spin the 3D ring directly to it</span>
-          <span><kbd>/</kbd> or <kbd>Cmd+K</kbd> to search</span>
-        </div>
       </div>
     </div>
 

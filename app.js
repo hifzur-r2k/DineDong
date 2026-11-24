@@ -120,12 +120,13 @@ const els = {
   receiptOrderId: document.getElementById('receiptOrderId'),
   receiptCloseBtn: document.getElementById('receiptCloseBtn'),
 
-  // Search Modal & Quick Menu Drawer
+  // Minimal Search Overlay
   openSearchBtn: document.getElementById('openSearchBtn'),
   searchModalBackdrop: document.getElementById('searchModalBackdrop'),
+  searchPanel: document.getElementById('searchPanel'),
   searchCloseBtn: document.getElementById('searchCloseBtn'),
   searchClearBtn: document.getElementById('searchClearBtn'),
-  searchFilterPills: document.getElementById('searchFilterPills'),
+  searchDietSwitch: document.getElementById('searchDietSwitch'),
   dishSearchInput: document.getElementById('dishSearchInput'),
   searchResultsList: document.getElementById('searchResultsList'),
 
@@ -1142,11 +1143,10 @@ els.receiptCloseBtn.addEventListener('click', () => {
 });
 
 // ============================================================================
-// Minimalist Instant Search & Quick Menu Drawer
+// Minimalist Instant Search (Decluttered & Keyboard-Safe)
 // ============================================================================
 const searchFilterState = {
-  diet: 'all',     // 'all' | 'veg' | 'non-veg'
-  category: null,  // null | category string
+  diet: 'all', // 'all' | 'veg' | 'non-veg'
   query: ''
 };
 
@@ -1167,10 +1167,36 @@ function highlightMatch(text, query) {
   return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
 }
 
+// Adjust search height on mobile when software keyboard opens/closes
+function adjustSearchForVisualViewport() {
+  if (!els.searchModalBackdrop || !els.searchModalBackdrop.classList.contains('open')) return;
+  if (window.innerWidth > 640) {
+    if (els.searchPanel) {
+      els.searchPanel.style.height = '';
+      els.searchPanel.style.top = '';
+    }
+    return;
+  }
+  if (window.visualViewport && els.searchPanel) {
+    els.searchPanel.style.height = `${window.visualViewport.height}px`;
+    els.searchPanel.style.top = `${window.visualViewport.offsetTop}px`;
+  }
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', adjustSearchForVisualViewport);
+  window.visualViewport.addEventListener('scroll', adjustSearchForVisualViewport);
+}
+window.addEventListener('resize', adjustSearchForVisualViewport);
+
 function openSearch() {
   if (!els.searchModalBackdrop) return;
   els.searchModalBackdrop.classList.add('open');
   els.searchModalBackdrop.setAttribute('aria-hidden', 'false');
+
+  // Prevent background page from scrolling behind the search overlay
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
 
   if (els.dishSearchInput) {
     if (els.searchClearBtn) {
@@ -1179,18 +1205,33 @@ function openSearch() {
     renderSearchResults(els.dishSearchInput.value);
     setTimeout(() => {
       els.dishSearchInput.focus();
-    }, 50);
+      adjustSearchForVisualViewport();
+    }, 40);
   } else {
     renderSearchResults('');
   }
 
   state.isPaused = true;
+  adjustSearchForVisualViewport();
 }
 
 function closeSearch() {
   if (!els.searchModalBackdrop) return;
   els.searchModalBackdrop.classList.remove('open');
   els.searchModalBackdrop.setAttribute('aria-hidden', 'true');
+
+  // Restore scroll
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+
+  if (els.searchPanel) {
+    els.searchPanel.style.height = '';
+    els.searchPanel.style.top = '';
+  }
+
+  if (els.dishSearchInput) {
+    els.dishSearchInput.blur();
+  }
 
   if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
     state.isPaused = false;
@@ -1283,13 +1324,10 @@ function renderSearchResults(query = '') {
     if (searchFilterState.diet === 'veg' && !dish.veg) return false;
     if (searchFilterState.diet === 'non-veg' && dish.veg) return false;
 
-    // Category filter
-    if (searchFilterState.category && dish.category !== searchFilterState.category) return false;
-
-    // Text search query matching name, category, description, or flavorNote
+    // Text query match
     if (q) {
       const matchName = dish.name.toLowerCase().includes(q);
-      const matchCat = dish.category.toLowerCase().includes(q);
+      const matchCat = dish.category && dish.category.toLowerCase().includes(q);
       const matchDesc = dish.description && dish.description.toLowerCase().includes(q);
       const matchFlavor = dish.flavorNote && dish.flavorNote.toLowerCase().includes(q);
       if (!matchName && !matchCat && !matchDesc && !matchFlavor) return false;
@@ -1302,12 +1340,7 @@ function renderSearchResults(query = '') {
   if (filtered.length === 0) {
     els.searchResultsList.innerHTML = `
       <div class="search-empty-state">
-        <svg class="search-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <div class="search-empty-title">No dishes found</div>
-        <div class="search-empty-desc">${q ? `No items matched "${escapeHtml(query)}". Try another search or filter.` : 'No dishes match the selected category filters.'}</div>
+        <p>No dishes found</p>
       </div>
     `;
     return;
@@ -1320,23 +1353,19 @@ function renderSearchResults(query = '') {
 
     const cartItem = state.cart.get(dish.id);
     const inCartQty = cartItem ? cartItem.quantity : 0;
-
     const highlightedName = highlightMatch(dish.name, q);
-    const descText = dish.description || dish.flavorNote || '';
 
     row.innerHTML = `
       <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="search-dish-thumb" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
       <div class="search-dish-info">
-        <div class="search-dish-header">
-          <span class="diet-btn-icon ${dish.veg ? 'veg' : 'non-veg'}" title="${dish.veg ? 'Vegetarian' : 'Non-Vegetarian'}">
-            <span class="diet-dot"></span>
-          </span>
+        <div class="search-dish-title-row">
           <span class="search-dish-name">${highlightedName}</span>
+          <span class="search-diet-tag ${dish.veg ? 'veg' : 'non-veg'}">${dish.veg ? 'Veg' : 'Non-Veg'}</span>
         </div>
-        <div class="search-dish-desc">${escapeHtml(descText)}</div>
-        <div class="search-dish-meta">
+        <div class="search-dish-sub">
           <span class="search-dish-price">₹${dish.price}</span>
-          <span class="search-dish-cat">• ${escapeHtml(dish.category)}</span>
+          <span class="search-dish-bullet">•</span>
+          <span class="search-dish-category">${escapeHtml(dish.category)}</span>
         </div>
       </div>
       <div class="search-dish-action" data-action-dish="${dish.id}">
@@ -1344,14 +1373,12 @@ function renderSearchResults(query = '') {
       </div>
     `;
 
-    // Row click: Signature Tap-to-Spin Ring Integration
+    // Row click: Smoothly spin 3D ring to this dish
     row.addEventListener('click', (e) => {
-      // Ignore clicks within action buttons
       if (e.target.closest('.search-dish-action')) return;
 
       closeSearch();
 
-      // If dish is not in currently active diet filter, switch to 'all' so card is visible on ring
       if (!currentDishes.some(d => d.id === dish.id)) {
         setDietFilter('all');
       }
@@ -1404,43 +1431,24 @@ if (els.searchClearBtn) {
   });
 }
 
-// Quick Diet & Category Filter Pills
-if (els.searchFilterPills) {
-  els.searchFilterPills.addEventListener('click', (e) => {
-    const pill = e.target.closest('.search-pill');
-    if (!pill) return;
-
-    if (pill.hasAttribute('data-filter')) {
-      const filter = pill.getAttribute('data-filter');
-      searchFilterState.diet = filter;
-      els.searchFilterPills.querySelectorAll('[data-filter]').forEach(p => {
-        const isActive = p === pill;
-        p.classList.toggle('active', isActive);
-        p.setAttribute('aria-checked', isActive ? 'true' : 'false');
-      });
-    } else if (pill.hasAttribute('data-cat')) {
-      const cat = pill.getAttribute('data-cat');
-      if (searchFilterState.category === cat) {
-        // Toggle off if already selected
-        searchFilterState.category = null;
-        pill.classList.remove('active');
-        pill.setAttribute('aria-checked', 'false');
-      } else {
-        searchFilterState.category = cat;
-        els.searchFilterPills.querySelectorAll('[data-cat]').forEach(p => {
-          const isActive = p === pill;
-          p.classList.toggle('active', isActive);
-          p.setAttribute('aria-checked', isActive ? 'true' : 'false');
-        });
-      }
-    }
-
+// Subtle 3-way Diet Switch (All / Veg / Non-Veg)
+if (els.searchDietSwitch) {
+  els.searchDietSwitch.addEventListener('click', (e) => {
+    const btn = e.target.closest('.search-diet-btn');
+    if (!btn) return;
+    const filter = btn.getAttribute('data-filter');
+    searchFilterState.diet = filter;
+    els.searchDietSwitch.querySelectorAll('.search-diet-btn').forEach(b => {
+      const isActive = b === btn;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-checked', isActive ? 'true' : 'false');
+    });
     renderSearchResults(els.dishSearchInput ? els.dishSearchInput.value : '');
   });
 }
 
 window.addEventListener('keydown', (e) => {
-  // Support '/' or 'Cmd/Ctrl + K' to open search
+  // Open search on '/' (unless in input/textarea) or Cmd/Ctrl + K
   const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
   if ((e.key === '/' && !isTyping) || ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K'))) {
     e.preventDefault();
