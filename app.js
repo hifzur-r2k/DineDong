@@ -120,10 +120,12 @@ const els = {
   receiptOrderId: document.getElementById('receiptOrderId'),
   receiptCloseBtn: document.getElementById('receiptCloseBtn'),
 
-  // Search Modal (Desktop)
+  // Search Modal & Quick Menu Drawer
   openSearchBtn: document.getElementById('openSearchBtn'),
   searchModalBackdrop: document.getElementById('searchModalBackdrop'),
   searchCloseBtn: document.getElementById('searchCloseBtn'),
+  searchClearBtn: document.getElementById('searchClearBtn'),
+  searchFilterPills: document.getElementById('searchFilterPills'),
   dishSearchInput: document.getElementById('dishSearchInput'),
   searchResultsList: document.getElementById('searchResultsList'),
 
@@ -965,6 +967,7 @@ function updateOrderBadge(hasNewItemAdded = false) {
   // Keep floating Blinkit-style cart pill and 3D ring badges in sync
   renderFloatingCartPill(hasNewItemAdded);
   updateRingCartBadges();
+  syncSearchRowSteppers();
 }
 
 function renderOrderDrawer() {
@@ -1139,61 +1142,220 @@ els.receiptCloseBtn.addEventListener('click', () => {
 });
 
 // ============================================================================
-// Search Modal (Desktop)
+// Minimalist Instant Search & Quick Menu Drawer
 // ============================================================================
+const searchFilterState = {
+  diet: 'all',     // 'all' | 'veg' | 'non-veg'
+  category: null,  // null | category string
+  query: ''
+};
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function highlightMatch(text, query) {
+  if (!query || !query.trim()) return escapeHtml(text);
+  const q = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${q})`, 'gi');
+  return escapeHtml(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
 function openSearch() {
   if (!els.searchModalBackdrop) return;
   els.searchModalBackdrop.classList.add('open');
-  els.dishSearchInput.value = '';
-  renderSearchResults('');
-  els.dishSearchInput.focus();
+  els.searchModalBackdrop.setAttribute('aria-hidden', 'false');
+
+  if (els.dishSearchInput) {
+    if (els.searchClearBtn) {
+      els.searchClearBtn.style.display = els.dishSearchInput.value.trim().length > 0 ? 'flex' : 'none';
+    }
+    renderSearchResults(els.dishSearchInput.value);
+    setTimeout(() => {
+      els.dishSearchInput.focus();
+    }, 50);
+  } else {
+    renderSearchResults('');
+  }
+
   state.isPaused = true;
 }
 
 function closeSearch() {
   if (!els.searchModalBackdrop) return;
   els.searchModalBackdrop.classList.remove('open');
+  els.searchModalBackdrop.setAttribute('aria-hidden', 'true');
+
   if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
     state.isPaused = false;
   }
 }
 
-function renderSearchResults(query) {
+function renderRowActionButton(dishId, qty) {
+  if (qty > 0) {
+    return `
+      <div class="search-stepper" data-dish-id="${dishId}">
+        <button type="button" class="search-stepper-btn search-step-minus" data-dish-id="${dishId}" aria-label="Decrease quantity">−</button>
+        <span class="search-stepper-qty">${qty}</span>
+        <button type="button" class="search-stepper-btn search-step-plus" data-dish-id="${dishId}" aria-label="Increase quantity">+</button>
+      </div>
+    `;
+  }
+  return `
+    <button type="button" class="search-add-btn" data-dish-id="${dishId}">
+      <span>+ Add</span>
+    </button>
+  `;
+}
+
+function attachSearchActionHandlers(container) {
+  if (!container) return;
+
+  container.querySelectorAll('.search-add-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dishId = parseInt(btn.getAttribute('data-dish-id'), 10);
+      const dish = DISHES.find(d => d.id === dishId);
+      if (dish) {
+        addToOrder(dish, 1);
+        updateSearchRowStepper(dishId);
+      }
+    });
+  });
+
+  container.querySelectorAll('.search-step-minus').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dishId = parseInt(btn.getAttribute('data-dish-id'), 10);
+      updateItemQuantity(dishId, -1);
+      updateSearchRowStepper(dishId);
+    });
+  });
+
+  container.querySelectorAll('.search-step-plus').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const dishId = parseInt(btn.getAttribute('data-dish-id'), 10);
+      const dish = DISHES.find(d => d.id === dishId);
+      if (dish) {
+        addToOrder(dish, 1);
+        updateSearchRowStepper(dishId);
+      }
+    });
+  });
+}
+
+function updateSearchRowStepper(dishId) {
+  if (!els.searchResultsList) return;
+  const actionContainer = els.searchResultsList.querySelector(`.search-dish-action[data-action-dish="${dishId}"]`);
+  if (!actionContainer) return;
+
+  const cartItem = state.cart.get(dishId);
+  const qty = cartItem ? cartItem.quantity : 0;
+  actionContainer.innerHTML = renderRowActionButton(dishId, qty);
+  attachSearchActionHandlers(actionContainer);
+}
+
+function syncSearchRowSteppers() {
+  if (!els.searchResultsList) return;
+  const actionContainers = els.searchResultsList.querySelectorAll('.search-dish-action');
+  actionContainers.forEach(container => {
+    const dishId = parseInt(container.getAttribute('data-action-dish'), 10);
+    const cartItem = state.cart.get(dishId);
+    const qty = cartItem ? cartItem.quantity : 0;
+    container.innerHTML = renderRowActionButton(dishId, qty);
+    attachSearchActionHandlers(container);
+  });
+}
+
+function renderSearchResults(query = '') {
+  searchFilterState.query = query;
   const q = query.trim().toLowerCase();
-  const filtered = DISHES.filter(d => 
-    d.name.toLowerCase().includes(q) ||
-    d.category.toLowerCase().includes(q) ||
-    d.flavorNote.toLowerCase().includes(q)
-  );
+
+  const filtered = DISHES.filter(dish => {
+    // Diet filter
+    if (searchFilterState.diet === 'veg' && !dish.veg) return false;
+    if (searchFilterState.diet === 'non-veg' && dish.veg) return false;
+
+    // Category filter
+    if (searchFilterState.category && dish.category !== searchFilterState.category) return false;
+
+    // Text search query matching name, category, description, or flavorNote
+    if (q) {
+      const matchName = dish.name.toLowerCase().includes(q);
+      const matchCat = dish.category.toLowerCase().includes(q);
+      const matchDesc = dish.description && dish.description.toLowerCase().includes(q);
+      const matchFlavor = dish.flavorNote && dish.flavorNote.toLowerCase().includes(q);
+      if (!matchName && !matchCat && !matchDesc && !matchFlavor) return false;
+    }
+    return true;
+  });
 
   els.searchResultsList.innerHTML = '';
+
   if (filtered.length === 0) {
     els.searchResultsList.innerHTML = `
-      <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
-        No dishes found matching "${query}".
+      <div class="search-empty-state">
+        <svg class="search-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <div class="search-empty-title">No dishes found</div>
+        <div class="search-empty-desc">${q ? `No items matched "${escapeHtml(query)}". Try another search or filter.` : 'No dishes match the selected category filters.'}</div>
       </div>
     `;
     return;
   }
 
   filtered.forEach(dish => {
-    const item = document.createElement('div');
-    item.className = 'search-item';
-    item.innerHTML = `
-      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="search-item-img" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
-      <div>
-        <div class="search-item-title">${dish.name}</div>
-        <div class="search-item-cat">${dish.category}</div>
+    const row = document.createElement('div');
+    row.className = 'search-dish-row';
+    row.setAttribute('data-dish-id', dish.id);
+
+    const cartItem = state.cart.get(dish.id);
+    const inCartQty = cartItem ? cartItem.quantity : 0;
+
+    const highlightedName = highlightMatch(dish.name, q);
+    const descText = dish.description || dish.flavorNote || '';
+
+    row.innerHTML = `
+      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="search-dish-thumb" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
+      <div class="search-dish-info">
+        <div class="search-dish-header">
+          <span class="diet-btn-icon ${dish.veg ? 'veg' : 'non-veg'}" title="${dish.veg ? 'Vegetarian' : 'Non-Vegetarian'}">
+            <span class="diet-dot"></span>
+          </span>
+          <span class="search-dish-name">${highlightedName}</span>
+        </div>
+        <div class="search-dish-desc">${escapeHtml(descText)}</div>
+        <div class="search-dish-meta">
+          <span class="search-dish-price">₹${dish.price}</span>
+          <span class="search-dish-cat">• ${escapeHtml(dish.category)}</span>
+        </div>
       </div>
-      <div class="search-item-price">₹${dish.price}</div>
+      <div class="search-dish-action" data-action-dish="${dish.id}">
+        ${renderRowActionButton(dish.id, inCartQty)}
+      </div>
     `;
 
-    item.addEventListener('click', () => {
+    // Row click: Signature Tap-to-Spin Ring Integration
+    row.addEventListener('click', (e) => {
+      // Ignore clicks within action buttons
+      if (e.target.closest('.search-dish-action')) return;
+
       closeSearch();
-      // If dish is not in current diet filter, switch to 'all' so card is on ring
+
+      // If dish is not in currently active diet filter, switch to 'all' so card is visible on ring
       if (!currentDishes.some(d => d.id === dish.id)) {
         setDietFilter('all');
       }
+
       setTimeout(() => {
         const dishIndex = currentDishes.findIndex(d => d.id === dish.id);
         if (dishIndex !== -1) {
@@ -1205,25 +1367,82 @@ function renderSearchResults(query) {
       }, 50);
     });
 
-    els.searchResultsList.appendChild(item);
+    els.searchResultsList.appendChild(row);
   });
+
+  attachSearchActionHandlers(els.searchResultsList);
 }
 
+// Event Listeners for Search
 if (els.openSearchBtn) els.openSearchBtn.addEventListener('click', openSearch);
 if (els.searchCloseBtn) els.searchCloseBtn.addEventListener('click', closeSearch);
+
 if (els.searchModalBackdrop) {
   els.searchModalBackdrop.addEventListener('click', (e) => {
     if (e.target === els.searchModalBackdrop) closeSearch();
   });
 }
+
 if (els.dishSearchInput) {
   els.dishSearchInput.addEventListener('input', (e) => {
-    renderSearchResults(e.target.value);
+    const val = e.target.value;
+    if (els.searchClearBtn) {
+      els.searchClearBtn.style.display = val.trim().length > 0 ? 'flex' : 'none';
+    }
+    renderSearchResults(val);
+  });
+}
+
+if (els.searchClearBtn) {
+  els.searchClearBtn.addEventListener('click', () => {
+    if (els.dishSearchInput) {
+      els.dishSearchInput.value = '';
+      els.searchClearBtn.style.display = 'none';
+      renderSearchResults('');
+      els.dishSearchInput.focus();
+    }
+  });
+}
+
+// Quick Diet & Category Filter Pills
+if (els.searchFilterPills) {
+  els.searchFilterPills.addEventListener('click', (e) => {
+    const pill = e.target.closest('.search-pill');
+    if (!pill) return;
+
+    if (pill.hasAttribute('data-filter')) {
+      const filter = pill.getAttribute('data-filter');
+      searchFilterState.diet = filter;
+      els.searchFilterPills.querySelectorAll('[data-filter]').forEach(p => {
+        const isActive = p === pill;
+        p.classList.toggle('active', isActive);
+        p.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+    } else if (pill.hasAttribute('data-cat')) {
+      const cat = pill.getAttribute('data-cat');
+      if (searchFilterState.category === cat) {
+        // Toggle off if already selected
+        searchFilterState.category = null;
+        pill.classList.remove('active');
+        pill.setAttribute('aria-checked', 'false');
+      } else {
+        searchFilterState.category = cat;
+        els.searchFilterPills.querySelectorAll('[data-cat]').forEach(p => {
+          const isActive = p === pill;
+          p.classList.toggle('active', isActive);
+          p.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+      }
+    }
+
+    renderSearchResults(els.dishSearchInput ? els.dishSearchInput.value : '');
   });
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+  // Support '/' or 'Cmd/Ctrl + K' to open search
+  const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+  if ((e.key === '/' && !isTyping) || ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K'))) {
     e.preventDefault();
     openSearch();
   }
