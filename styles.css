@@ -641,11 +641,14 @@ body {
   align-items: center;
   justify-content: center;
   gap: 3px;
+  height: 26px;
+  min-width: 68px;
+  box-sizing: border-box;
   background: var(--accent-saffron);
   color: #FFFFFF;
   border: none;
   border-radius: 9999px;
-  padding: 6px 14px;
+  padding: 0 14px;
   font-family: var(--font-main);
   font-size: 11px;
   font-weight: 600;
@@ -685,15 +688,18 @@ body {
   }
 }
 
-/* Centerpiece Stepper Pill (Minus / Count / Plus) */
+/* Centerpiece Stepper Pill (Minus / Count / Plus): Exact matching 26px height & radius for ZERO layout shift */
 .centerpiece-stepper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  height: 26px;
+  min-width: 68px;
+  box-sizing: border-box;
   background: var(--accent-saffron);
   border-radius: 9999px;
-  padding: 2px 4px;
-  box-shadow: 0 2px 10px rgba(196, 76, 39, 0.45);
+  padding: 0 2px;
+  box-shadow: 0 2px 8px var(--accent-saffron-glow);
   user-select: none;
   transition: transform 0.15s ease, background 0.15s ease;
 }
@@ -741,24 +747,52 @@ body {
 }
 
 /* ==========================================================================
-   Homepage Selected Dishes Quick Tray (Uncluttered, Instant Steppers, Tap-to-Focus)
+   Compact Floating Blinkit-Style "View Cart" Pill
+   Only visible when cart has >= 1 item, positioned cleanly above filter bar
    ========================================================================== */
-.homepage-order-tray {
-  display: flex;
+.floating-cart-pill {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: min(840px, 94vw);
-  margin: 6px auto 4px;
+  gap: 12px;
+  width: fit-content;
+  max-width: 92vw;
+  margin: 4px auto 6px;
+  border-radius: 9999px;
+  background: var(--accent-saffron); /* Terracotta #D95D39 */
+  color: #FFFFFF;
+  padding: 6px 8px 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: 0 8px 24px rgba(217, 93, 57, 0.42), 0 2px 6px rgba(24, 23, 21, 0.12);
+  cursor: pointer;
+  user-select: none;
   position: relative;
-  z-index: 38;
-  animation: traySlideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 45;
+  transform-origin: center center;
+  transition: background-color 0.18s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes traySlideUp {
+.floating-cart-pill:hover {
+  background: #C44C27;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(217, 93, 57, 0.52), 0 3px 8px rgba(24, 23, 21, 0.16);
+}
+
+.floating-cart-pill:active {
+  transform: scale(0.96);
+}
+
+.floating-cart-pill.anim-enter {
+  animation: cartPillEntrance 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.floating-cart-pill.anim-pulse {
+  animation: cartPillPulse 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cartPillEntrance {
   0% {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(10px) scale(0.92);
   }
   100% {
     opacity: 1;
@@ -766,207 +800,97 @@ body {
   }
 }
 
-.tray-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-hairline);
-  border-radius: 9999px;
-  padding: 4px 6px 4px 12px;
-  box-shadow: 0 4px 20px rgba(24, 23, 21, 0.07), 0 1px 3px rgba(24, 23, 21, 0.04);
-  box-sizing: border-box;
+@keyframes cartPillPulse {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
-.tray-summary {
+/* Left: Up to 3 overlapping circular thumbnails */
+.cart-pill-thumbs {
   display: flex;
   align-items: center;
-  gap: 6px;
   flex-shrink: 0;
 }
 
-.tray-count-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent-saffron);
-  background: rgba(224, 90, 50, 0.1);
-  padding: 2.5px 8px;
-  border-radius: 9999px;
+.cart-pill-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #FFFFFF;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 1px 4px rgba(24, 23, 21, 0.2);
+  background: #EAE6DE;
+  position: relative;
+}
+
+.cart-pill-thumb:not(:first-child) {
+  margin-left: -10px;
+}
+
+.cart-pill-thumb:nth-child(1) { z-index: 3; }
+.cart-pill-thumb:nth-child(2) { z-index: 2; }
+.cart-pill-thumb:nth-child(3) { z-index: 1; }
+
+/* Center: Two clean stacked lines in Inter */
+.cart-pill-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0 4px;
   white-space: nowrap;
+}
+
+.cart-pill-title {
+  font-family: var(--font-main);
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
-.tray-total-price {
+.cart-pill-sub {
   font-family: var(--font-main);
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: 400;
+  color: #FFFFFF;
+  opacity: 0.9;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  letter-spacing: 0;
 }
 
-.tray-divider {
-  width: 1px;
-  height: 20px;
-  background: var(--border-hairline);
-  flex-shrink: 0;
-}
-
-.tray-chips-scroll {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  flex: 1;
-  padding: 1px 2px;
-}
-
-.tray-chips-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.tray-dish-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #FFFFFF;
-  border: 1px solid rgba(24, 23, 21, 0.08);
-  border-radius: 9999px;
-  padding: 2px 4px 2px 2px;
-  box-shadow: 0 1px 4px rgba(24, 23, 21, 0.04);
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-  flex-shrink: 0;
-}
-
-.tray-dish-chip:hover {
-  border-color: rgba(224, 90, 50, 0.4);
-  box-shadow: 0 2px 8px rgba(224, 90, 50, 0.12);
-}
-
-.tray-chip-thumb {
-  width: 26px;
-  height: 26px;
+/* Right: Subtle circular button with a crisp white > chevron icon */
+.cart-pill-arrow {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  object-fit: cover;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: transform 0.15s ease;
-}
-
-.tray-chip-thumb:hover {
-  transform: scale(1.08);
-}
-
-.tray-chip-meta {
+  background: rgba(255, 255, 255, 0.2);
   display: flex;
-  flex-direction: column;
-  cursor: pointer;
-  max-width: 100px;
-  min-width: 0;
-}
-
-.tray-chip-name {
-  font-family: var(--font-main);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.2;
-}
-
-.tray-chip-price {
-  font-family: var(--font-main);
-  font-size: 9.5px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.tray-chip-stepper {
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-  background: rgba(24, 23, 21, 0.05);
-  border-radius: 9999px;
-  padding: 1px 2px;
-  flex-shrink: 0;
-}
-
-.tray-chip-btn {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 19px;
-  height: 19px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: var(--text-primary);
-  font-family: var(--font-main);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  line-height: 1;
-  transition: background 0.15s ease, color 0.15s ease;
-  user-select: none;
-}
-
-.tray-chip-btn:hover {
-  background: rgba(24, 23, 21, 0.12);
-  color: var(--accent-saffron);
-}
-
-.tray-chip-btn:active {
-  transform: scale(0.9);
-}
-
-.tray-chip-qty {
-  min-width: 13px;
-  text-align: center;
-  font-family: var(--font-main);
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.tray-cart-action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--text-primary);
-  color: #FFFFFF;
-  border: none;
-  border-radius: 9999px;
-  padding: 6px 12px;
-  font-family: var(--font-main);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s ease, transform 0.15s ease;
-  white-space: nowrap;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
-.tray-cart-action-btn:hover {
-  background: #000000;
-  transform: translateY(-1px);
+.cart-pill-arrow svg {
+  width: 14px;
+  height: 14px;
+  stroke: #FFFFFF;
 }
 
-.tray-cart-action-btn svg {
-  width: 12px;
-  height: 12px;
-  stroke: currentColor;
+.floating-cart-pill:hover .cart-pill-arrow {
+  background: rgba(255, 255, 255, 0.32);
+  transform: translateX(1px);
 }
 
 /* ==========================================================================
@@ -1546,10 +1470,10 @@ body {
   font-size: 13px;
 }
 
-/* Toast Notice: Positioned cleanly above bottom filter bar & controls */
+/* Toast Notice: Positioned cleanly above bottom floating cart pill & controls */
 .toast-notice {
   position: fixed;
-  bottom: 84px;
+  bottom: 106px;
   left: 50%;
   transform: translateX(-50%) translateY(16px);
   background: var(--text-primary);
@@ -1726,12 +1650,16 @@ body {
   }
 
   .centerpiece-add-btn {
-    padding: 5px 11px;
+    height: 24px;
+    min-width: 62px;
+    padding: 0 11px;
     font-size: 10.5px;
   }
 
   .centerpiece-stepper {
-    padding: 1.5px 3px;
+    height: 24px;
+    min-width: 62px;
+    padding: 0 2px;
   }
 
   .centerpiece-stepper-btn {
@@ -1745,47 +1673,38 @@ body {
     min-width: 17px;
   }
 
-  .homepage-order-tray {
-    max-width: 96vw;
-    margin: 4px auto 2px;
+  .floating-cart-pill {
+    padding: 5px 7px 5px 7px;
+    gap: 10px;
+    margin: 3px auto 4px;
   }
 
-  .tray-container {
-    padding: 3px 5px 3px 9px;
-    gap: 6px;
+  .cart-pill-thumb {
+    width: 28px;
+    height: 28px;
+    border-width: 1.5px;
   }
 
-  .tray-count-tag {
-    font-size: 10px;
-    padding: 2px 6px;
+  .cart-pill-thumb:not(:first-child) {
+    margin-left: -9px;
   }
 
-  .tray-total-price {
-    font-size: 12px;
+  .cart-pill-title {
+    font-size: 13px;
   }
 
-  .tray-chip-thumb {
-    width: 24px;
-    height: 24px;
+  .cart-pill-sub {
+    font-size: 11px;
   }
 
-  .tray-chip-meta {
-    max-width: 75px;
+  .cart-pill-arrow {
+    width: 28px;
+    height: 28px;
   }
 
-  .tray-chip-name {
-    font-size: 10px;
-  }
-
-  .tray-chip-btn {
-    width: 18px;
-    height: 18px;
-    font-size: 12px;
-  }
-
-  .tray-cart-action-btn {
-    padding: 5px 9px;
-    font-size: 10px;
+  .cart-pill-arrow svg {
+    width: 13px;
+    height: 13px;
   }
 
   .bottom-controls-bar {
@@ -1808,7 +1727,7 @@ body {
   }
 
   .toast-notice {
-    bottom: 96px;
+    bottom: 120px;
     font-size: 11px;
     padding: 6px 14px;
   }

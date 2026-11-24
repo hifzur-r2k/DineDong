@@ -81,12 +81,10 @@ const els = {
   centerpieceQtyVal: document.getElementById('centerpieceQtyVal'),
   centerpieceCloseBtn: document.getElementById('centerpieceCloseBtn'),
 
-  // Homepage Selected Dishes Quick Tray
-  homepageOrderTray: document.getElementById('homepageOrderTray'),
-  trayCountTag: document.getElementById('trayCountTag'),
-  trayTotalPrice: document.getElementById('trayTotalPrice'),
-  trayChipsScroll: document.getElementById('trayChipsScroll'),
-  trayCartActionBtn: document.getElementById('trayCartActionBtn'),
+  // Compact Floating Blinkit-Style "View Cart" Pill
+  floatingCartPill: document.getElementById('floatingCartPill'),
+  cartPillThumbs: document.getElementById('cartPillThumbs'),
+  cartPillSub: document.getElementById('cartPillSub'),
 
   // Controls Bar & Curated Diet Pill
   dietFilterPill: document.getElementById('dietFilterPill'),
@@ -656,7 +654,7 @@ document.addEventListener('click', (e) => {
       !e.target.closest('.ctrl-circle-btn') && 
       !e.target.closest('.order-drawer') && 
       !e.target.closest('.cart-nav-btn') &&
-      !e.target.closest('#homepageOrderTray')) {
+      !e.target.closest('#floatingCartPill')) {
     if (state.isLocked || state.hoveredDish || state.isPinnedByClick) {
       unlockAndResume();
     }
@@ -924,7 +922,7 @@ function addToOrder(dish, qty = 1) {
     state.cart.set(dish.id, { dish, quantity: qty });
   }
 
-  updateOrderBadge();
+  updateOrderBadge(true);
   renderOrderDrawer();
   updateCenterpieceAddButton(dish);
 
@@ -941,7 +939,7 @@ function updateItemQuantity(dishId, delta) {
     state.cart.delete(dishId);
   }
 
-  updateOrderBadge();
+  updateOrderBadge(delta > 0);
   renderOrderDrawer();
 
   const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
@@ -952,7 +950,7 @@ function updateItemQuantity(dishId, delta) {
 
 function removeItemFromOrder(dishId) {
   state.cart.delete(dishId);
-  updateOrderBadge();
+  updateOrderBadge(false);
   renderOrderDrawer();
 
   const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
@@ -961,7 +959,7 @@ function removeItemFromOrder(dishId) {
   }
 }
 
-function updateOrderBadge() {
+function updateOrderBadge(hasNewItemAdded = false) {
   let totalCount = 0;
   let subtotal = 0;
 
@@ -977,8 +975,8 @@ function updateOrderBadge() {
   void els.orderCountBadge.offsetWidth;
   els.orderCountBadge.classList.add('bump');
 
-  // Keep homepage selected dishes quick-tray and 3D ring badges in sync
-  renderHomepageOrderTray();
+  // Keep floating Blinkit-style cart pill and 3D ring badges in sync
+  renderFloatingCartPill(hasNewItemAdded);
   updateRingCartBadges();
 }
 
@@ -1048,96 +1046,66 @@ function renderOrderDrawer() {
 }
 
 // ============================================================================
-// Homepage Selected Dishes Quick Tray (Adaptive, Uncluttered, Tap-to-Focus)
+// Compact Floating Blinkit-Style "View Cart" Pill
 // ============================================================================
-function renderHomepageOrderTray() {
-  if (!els.homepageOrderTray) return;
+function renderFloatingCartPill(hasNewItemAdded = false) {
+  if (!els.floatingCartPill) return;
   const items = Array.from(state.cart.values());
 
   if (items.length === 0) {
-    els.homepageOrderTray.style.display = 'none';
-    if (els.trayChipsScroll) els.trayChipsScroll.innerHTML = '';
+    els.floatingCartPill.style.display = 'none';
+    els.floatingCartPill.classList.remove('is-visible', 'anim-enter', 'anim-pulse');
+    if (els.cartPillThumbs) els.cartPillThumbs.innerHTML = '';
     return;
   }
 
-  els.homepageOrderTray.style.display = 'flex';
+  const wasHidden = els.floatingCartPill.style.display === 'none' || !els.floatingCartPill.classList.contains('is-visible');
+  els.floatingCartPill.style.display = 'inline-flex';
 
-  const totalDishCount = items.length;
-  const totalCount = items.reduce((sum, it) => sum + it.quantity, 0);
-  const subtotal = items.reduce((sum, it) => sum + it.dish.price * it.quantity, 0);
+  const totalItems = items.reduce((sum, it) => sum + it.quantity, 0);
+  const totalPrice = items.reduce((sum, it) => sum + it.dish.price * it.quantity, 0);
 
-  if (els.trayCountTag) {
-    els.trayCountTag.textContent = `${totalDishCount} ${totalDishCount === 1 ? 'Dish' : 'Dishes'} (${totalCount})`;
-  }
-  if (els.trayTotalPrice) {
-    els.trayTotalPrice.textContent = `₹${subtotal}`;
+  if (els.cartPillSub) {
+    els.cartPillSub.textContent = `${totalItems} ${totalItems === 1 ? 'item' : 'items'} • ₹${totalPrice}`;
   }
 
-  if (!els.trayChipsScroll) return;
-  els.trayChipsScroll.innerHTML = '';
-
-  items.forEach(({ dish, quantity }) => {
-    const chip = document.createElement('div');
-    chip.className = 'tray-dish-chip';
-    chip.dataset.dishId = dish.id;
-    chip.setAttribute('role', 'listitem');
-    chip.innerHTML = `
-      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="tray-chip-thumb" title="Focus ${dish.name} on 3D ring" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
-      <div class="tray-chip-meta" title="Focus ${dish.name} on 3D ring">
-        <span class="tray-chip-name">${dish.name}</span>
-        <span class="tray-chip-price">₹${dish.price}</span>
-      </div>
-      <div class="tray-chip-stepper">
-        <button type="button" class="tray-chip-btn minus" aria-label="Decrease ${dish.name}">&minus;</button>
-        <span class="tray-chip-qty">${quantity}</span>
-        <button type="button" class="tray-chip-btn plus" aria-label="Increase ${dish.name}">&plus;</button>
-      </div>
-    `;
-
-    // Clicking thumbnail or meta focuses this dish on the 3D ring
-    const focusTargetEls = [chip.querySelector('.tray-chip-thumb'), chip.querySelector('.tray-chip-meta')];
-    focusTargetEls.forEach(el => {
-      if (!el) return;
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // If dish is not in current filter, switch to 'all' so it exists on the ring
-        if (currentDishes.findIndex(d => d.id === dish.id) === -1) {
-          setDietFilter('all');
-        }
-        const targetIdx = currentDishes.findIndex(d => d.id === dish.id);
-        if (targetIdx !== -1) {
-          rotateToDishIndex(targetIdx);
-          lockOnDish(dish, true);
-        }
-      });
+  // Up to 3 overlapping circular thumbnails showing latest dishes added
+  if (els.cartPillThumbs) {
+    els.cartPillThumbs.innerHTML = '';
+    const latestItems = items.slice().reverse().slice(0, 3);
+    latestItems.forEach(it => {
+      const img = document.createElement('img');
+      img.src = getThumbnailUrl(it.dish.imageId);
+      img.alt = it.dish.name;
+      img.className = 'cart-pill-thumb';
+      img.onerror = () => { img.src = FALLBACK_IMAGE_URL; };
+      els.cartPillThumbs.appendChild(img);
     });
+  }
 
-    // Inline Chip Stepper Minus
-    const btnMinus = chip.querySelector('.tray-chip-btn.minus');
-    if (btnMinus) {
-      btnMinus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        updateItemQuantity(dish.id, -1);
-      });
-    }
-
-    // Inline Chip Stepper Plus
-    const btnPlus = chip.querySelector('.tray-chip-btn.plus');
-    if (btnPlus) {
-      btnPlus.addEventListener('click', (e) => {
-        e.stopPropagation();
-        addToOrder(dish, 1);
-      });
-    }
-
-    els.trayChipsScroll.appendChild(chip);
-  });
+  if (wasHidden) {
+    els.floatingCartPill.classList.add('is-visible');
+    els.floatingCartPill.classList.remove('anim-pulse');
+    els.floatingCartPill.classList.remove('anim-enter');
+    void els.floatingCartPill.offsetWidth;
+    els.floatingCartPill.classList.add('anim-enter');
+  } else if (hasNewItemAdded) {
+    els.floatingCartPill.classList.remove('anim-pulse');
+    void els.floatingCartPill.offsetWidth;
+    els.floatingCartPill.classList.add('anim-pulse');
+  }
 }
 
-if (els.trayCartActionBtn) {
-  els.trayCartActionBtn.addEventListener('click', (e) => {
+if (els.floatingCartPill) {
+  els.floatingCartPill.addEventListener('click', (e) => {
     e.stopPropagation();
     openDrawer();
+  });
+  els.floatingCartPill.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openDrawer();
+    }
   });
 }
 
