@@ -1294,13 +1294,13 @@ function attachSearchActionHandlers(container) {
 
 function updateSearchRowStepper(dishId) {
   if (!els.searchResultsList) return;
-  const actionContainer = els.searchResultsList.querySelector(`.search-dish-action[data-action-dish="${dishId}"]`);
-  if (!actionContainer) return;
-
-  const cartItem = state.cart.get(dishId);
-  const qty = cartItem ? cartItem.quantity : 0;
-  actionContainer.innerHTML = renderRowActionButton(dishId, qty);
-  attachSearchActionHandlers(actionContainer);
+  const actionContainers = els.searchResultsList.querySelectorAll(`.search-dish-action[data-action-dish="${dishId}"]`);
+  actionContainers.forEach(actionContainer => {
+    const cartItem = state.cart.get(dishId);
+    const qty = cartItem ? cartItem.quantity : 0;
+    actionContainer.innerHTML = renderRowActionButton(dishId, qty);
+    attachSearchActionHandlers(actionContainer);
+  });
 }
 
 function syncSearchRowSteppers() {
@@ -1346,55 +1346,91 @@ function renderSearchResults(query = '') {
     return;
   }
 
+  // Pre-defined menu order of categories for editorial presentation
+  const categoryOrder = [
+    'Street Delights',
+    'Dosas & Breads',
+    'Burgers & Kebabs',
+    'Biryani & Curries',
+    'Mithai & Desserts',
+    'Desi Coolers & Chai'
+  ];
+
+  // Group dishes by category
+  const groups = new Map();
+  categoryOrder.forEach(cat => groups.set(cat, []));
+
   filtered.forEach(dish => {
-    const row = document.createElement('div');
-    row.className = 'search-dish-row';
-    row.setAttribute('data-dish-id', dish.id);
+    const cat = dish.category || 'Other';
+    if (!groups.has(cat)) groups.set(cat, []);
+    groups.get(cat).push(dish);
+  });
 
-    const cartItem = state.cart.get(dish.id);
-    const inCartQty = cartItem ? cartItem.quantity : 0;
-    const highlightedName = highlightMatch(dish.name, q);
+  groups.forEach((categoryDishes, categoryTitle) => {
+    if (categoryDishes.length === 0) return;
 
-    row.innerHTML = `
-      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="search-dish-thumb" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
-      <div class="search-dish-info">
-        <div class="search-dish-title-row">
-          <span class="search-dish-name">${highlightedName}</span>
-          <span class="search-diet-tag ${dish.veg ? 'veg' : 'non-veg'}">${dish.veg ? 'Veg' : 'Non-Veg'}</span>
+    const groupEl = document.createElement('div');
+    groupEl.className = 'search-category-group';
+
+    const headerEl = document.createElement('div');
+    headerEl.className = 'search-category-header';
+    headerEl.textContent = categoryTitle;
+    groupEl.appendChild(headerEl);
+
+    const listEl = document.createElement('div');
+    listEl.className = 'search-category-dishes';
+
+    categoryDishes.forEach(dish => {
+      const row = document.createElement('div');
+      row.className = 'search-dish-row';
+      row.setAttribute('data-dish-id', dish.id);
+
+      const cartItem = state.cart.get(dish.id);
+      const inCartQty = cartItem ? cartItem.quantity : 0;
+      const highlightedName = highlightMatch(dish.name, q);
+      const descText = dish.flavorNote || dish.description || '';
+
+      row.innerHTML = `
+        <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="search-dish-thumb" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
+        <div class="search-dish-info">
+          <div class="search-dish-title-row">
+            <span class="diet-dot ${dish.veg ? 'veg' : 'non-veg'}" title="${dish.veg ? 'Vegetarian' : 'Non-Vegetarian'}"></span>
+            <span class="search-dish-name">${highlightedName}</span>
+            <span class="search-dish-price">₹${dish.price}</span>
+          </div>
+          <div class="search-dish-desc">${escapeHtml(descText)}</div>
         </div>
-        <div class="search-dish-sub">
-          <span class="search-dish-price">₹${dish.price}</span>
-          <span class="search-dish-bullet">•</span>
-          <span class="search-dish-category">${escapeHtml(dish.category)}</span>
+        <div class="search-dish-action" data-action-dish="${dish.id}">
+          ${renderRowActionButton(dish.id, inCartQty)}
         </div>
-      </div>
-      <div class="search-dish-action" data-action-dish="${dish.id}">
-        ${renderRowActionButton(dish.id, inCartQty)}
-      </div>
-    `;
+      `;
 
-    // Row click: Smoothly spin 3D ring to this dish
-    row.addEventListener('click', (e) => {
-      if (e.target.closest('.search-dish-action')) return;
+      // Row click: Smoothly spin 3D ring to this dish
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('.search-dish-action')) return;
 
-      closeSearch();
+        closeSearch();
 
-      if (!currentDishes.some(d => d.id === dish.id)) {
-        setDietFilter('all');
-      }
-
-      setTimeout(() => {
-        const dishIndex = currentDishes.findIndex(d => d.id === dish.id);
-        if (dishIndex !== -1) {
-          rotateToDishIndex(dishIndex);
-          setTimeout(() => {
-            lockOnDish(dish, true);
-          }, 450);
+        if (!currentDishes.some(d => d.id === dish.id)) {
+          setDietFilter('all');
         }
-      }, 50);
+
+        setTimeout(() => {
+          const dishIndex = currentDishes.findIndex(d => d.id === dish.id);
+          if (dishIndex !== -1) {
+            rotateToDishIndex(dishIndex);
+            setTimeout(() => {
+              lockOnDish(dish, true);
+            }, 450);
+          }
+        }, 50);
+      });
+
+      listEl.appendChild(row);
     });
 
-    els.searchResultsList.appendChild(row);
+    groupEl.appendChild(listEl);
+    els.searchResultsList.appendChild(groupEl);
   });
 
   attachSearchActionHandlers(els.searchResultsList);
@@ -1434,11 +1470,11 @@ if (els.searchClearBtn) {
 // Subtle 3-way Diet Switch (All / Veg / Non-Veg)
 if (els.searchDietSwitch) {
   els.searchDietSwitch.addEventListener('click', (e) => {
-    const btn = e.target.closest('.search-diet-btn');
+    const btn = e.target.closest('.search-tab-btn, .search-diet-btn');
     if (!btn) return;
     const filter = btn.getAttribute('data-filter');
     searchFilterState.diet = filter;
-    els.searchDietSwitch.querySelectorAll('.search-diet-btn').forEach(b => {
+    els.searchDietSwitch.querySelectorAll('.search-tab-btn, .search-diet-btn').forEach(b => {
       const isActive = b === btn;
       b.classList.toggle('active', isActive);
       b.setAttribute('aria-checked', isActive ? 'true' : 'false');

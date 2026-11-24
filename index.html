@@ -267,10 +267,11 @@
     <div class="modal-backdrop search-backdrop" id="searchModalBackdrop" aria-hidden="true">
       <div class="search-panel" id="searchPanel" role="dialog" aria-modal="true" aria-label="Search Dishes">
         
-        <!-- Search Header Bar: Input + Subtle Diet Switch + Cancel -->
-        <div class="search-header-bar">
-          <div class="search-input-box">
-            <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <!-- Two-Row Breathing Header -->
+        <div class="search-header-group">
+          <!-- Row 1: Full-width search input with subtle bottom hairline and sleek Cancel text button -->
+          <div class="search-input-row">
+            <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
@@ -278,35 +279,30 @@
               type="search" 
               class="search-input" 
               id="dishSearchInput" 
-              placeholder="Search dishes, drinks, flavors..." 
+              placeholder="Search dishes, cravings..." 
               autocomplete="off" 
               autocapitalize="off" 
               autocorrect="off" 
               spellcheck="false" 
               inputmode="search" 
               enterkeyhint="search"
-              aria-label="Search dishes and drinks"
+              aria-label="Search dishes, cravings..."
             >
             <button type="button" class="search-clear-btn" id="searchClearBtn" aria-label="Clear search" style="display: none;">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
+            <button type="button" class="search-cancel-btn" id="searchCloseBtn" aria-label="Close search">Cancel</button>
           </div>
 
-          <!-- Clean 3-way Diet Switch: All / Veg / Non-Veg -->
-          <div class="search-diet-switch" id="searchDietSwitch" role="radiogroup" aria-label="Filter by diet">
-            <button type="button" class="search-diet-btn active" data-filter="all" role="radio" aria-checked="true">All</button>
-            <button type="button" class="search-diet-btn" data-filter="veg" role="radio" aria-checked="false">Veg</button>
-            <button type="button" class="search-diet-btn" data-filter="non-veg" role="radio" aria-checked="false">Non-Veg</button>
+          <!-- Row 2: Clean, left-aligned minimalist filter tabs -->
+          <div class="search-tabs-row" id="searchDietSwitch" role="radiogroup" aria-label="Filter by diet">
+            <button type="button" class="search-tab-btn active" data-filter="all" role="radio" aria-checked="true">All</button>
+            <button type="button" class="search-tab-btn" data-filter="veg" role="radio" aria-checked="false">Veg</button>
+            <button type="button" class="search-tab-btn" data-filter="non-veg" role="radio" aria-checked="false">Non-Veg</button>
           </div>
-
-          <!-- Close / Cancel Button -->
-          <button type="button" class="search-close-btn" id="searchCloseBtn" aria-label="Close search">
-            <span class="search-close-label">Cancel</span>
-            <svg class="search-close-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
         </div>
 
-        <!-- Live Results List -->
+        <!-- Live Categorized Results List -->
         <div class="search-results-list" id="searchResultsList" role="list" aria-label="Dishes results"></div>
       </div>
     </div>

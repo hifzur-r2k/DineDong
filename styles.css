@@ -1439,40 +1439,29 @@ body {
   opacity: 1;
 }
 
-/* Header Bar */
-.search-header-bar {
-  padding: 12px 14px;
+/* Header Group: Two-Row Breathing Header */
+.search-header-group {
   background: #FAF9F5;
-  border-bottom: 1px solid var(--border-hairline);
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
   flex-shrink: 0;
+  padding: 16px 20px 0;
 }
 
-.search-input-box {
-  flex: 1;
-  min-width: 0;
+/* Row 1: Full-width clean search input with subtle bottom hairline & sleek Cancel */
+.search-input-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  border: 1px solid #E5E1D8;
-  border-radius: 999px;
-  height: 38px;
-  padding: 0 12px;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.search-input-box:focus-within {
-  border-color: var(--accent-saffron);
-  box-shadow: 0 0 0 2px rgba(217, 93, 57, 0.12);
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E5E1D8;
+  position: relative;
 }
 
 .search-ico {
-  width: 15px;
-  height: 15px;
-  color: var(--text-tertiary);
+  width: 17px;
+  height: 17px;
+  color: #8A8479;
   flex-shrink: 0;
 }
 
@@ -1483,9 +1472,9 @@ body {
   outline: none;
   background: transparent;
   font-family: var(--font-main);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 450;
   padding: 0;
 }
 
@@ -1494,13 +1483,13 @@ body {
 }
 
 .search-input::placeholder {
-  color: var(--text-tertiary);
+  color: #8A8479;
   font-weight: 400;
 }
 
 .search-clear-btn {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   background: #ECE8E0;
   border: none;
@@ -1525,74 +1514,55 @@ body {
   stroke: currentColor;
 }
 
-/* Subtle 3-way Diet Switch */
-.search-diet-switch {
-  display: inline-flex;
-  align-items: center;
-  background: #EFECE6;
-  padding: 2px;
-  border-radius: 999px;
+.search-cancel-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 0 4px 8px;
+  transition: opacity 0.15s ease;
   flex-shrink: 0;
-  gap: 1px;
 }
 
-.search-diet-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-main);
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 9px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-  user-select: none;
+.search-cancel-btn:hover {
+  opacity: 0.7;
 }
 
-.search-diet-btn:hover {
-  color: var(--text-primary);
-}
-
-.search-diet-btn.active {
-  background: #FFFFFF;
-  color: var(--text-primary);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(24, 23, 21, 0.08);
-}
-
-/* Cancel / Close Button */
-.search-close-btn {
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-main);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 4px 6px;
-  cursor: pointer;
+/* Row 2: Clean, left-aligned minimalist filter tabs */
+.search-tabs-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: color 0.15s;
-  flex-shrink: 0;
+  gap: 6px;
+  padding: 12px 0 10px;
 }
 
-.search-close-btn:hover {
-  color: var(--text-primary);
+.search-tab-btn {
+  border: none;
+  background: transparent;
+  color: #757068;
+  font-family: var(--font-main);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  white-space: nowrap;
 }
 
-.search-close-label {
-  display: none;
+.search-tab-btn:hover {
+  color: #181715;
+  background: rgba(24, 23, 21, 0.04);
 }
 
-.search-close-svg {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
-  display: block;
+.search-tab-btn.active {
+  background: #181715;
+  color: #FFFFFF;
+  font-weight: 600;
 }
 
 /* Results List */
@@ -1600,36 +1570,54 @@ body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 6px 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  padding: 4px 20px 24px;
   overscroll-behavior: contain;
 }
 
+/* Category Groups & Micro-Headers */
+.search-category-group {
+  margin-bottom: 8px;
+}
+
+.search-category-group:not(:first-child) {
+  margin-top: 14px;
+}
+
+.search-category-header {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8A8479;
+  font-weight: 600;
+  padding: 8px 0 6px;
+  border-bottom: 1px solid #EAE6DE;
+  margin-bottom: 2px;
+}
+
+/* Dish Rows */
 .search-dish-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: transparent;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(24, 23, 21, 0.06);
   cursor: pointer;
+  background: transparent;
   transition: background 0.15s ease;
   user-select: none;
 }
 
-.search-dish-row:hover {
-  background: rgba(24, 23, 21, 0.04);
+.search-dish-row:last-child {
+  border-bottom: none;
 }
 
-.search-dish-row:active {
-  background: rgba(24, 23, 21, 0.07);
+.search-dish-row:hover {
+  background: rgba(24, 23, 21, 0.02);
 }
 
 .search-dish-thumb {
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
@@ -1647,106 +1635,104 @@ body {
 .search-dish-title-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Refined 6px Indicator Dot */
+.diet-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.diet-dot.veg {
+  background: #2E7D32;
+}
+
+.diet-dot.non-veg {
+  background: #B71C1C;
 }
 
 .search-dish-name {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #181715;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Price: Crisp dark charcoal tabular numbers */
+.search-dish-price {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.search-diet-tag {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 1px 4px;
-  border-radius: 3px;
-  line-height: 1.1;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-
-.search-diet-tag.veg {
-  color: #2E7D32;
-  background: rgba(46, 125, 50, 0.08);
-}
-
-.search-diet-tag.non-veg {
-  color: #C62828;
-  background: rgba(198, 40, 40, 0.08);
-}
-
-.search-dish-sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.search-dish-price {
-  font-weight: 600;
-  color: var(--accent-saffron);
+  color: #181715;
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  margin-left: 4px;
 }
 
-.search-dish-bullet {
-  color: #D0CCC2;
-  font-size: 8px;
-}
-
-.search-dish-category {
-  color: var(--text-tertiary);
-  font-size: 11px;
+/* Description: Clean 1-line truncated in muted gray */
+.search-dish-desc {
+  font-size: 12px;
+  color: #757068;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+  margin-top: 1px;
 }
 
 .search-dish-action {
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 8px;
 }
 
-/* Stepper & Add Button */
+/* Restrained "+ Add" Outline Button (Quiet Default) */
 .search-add-btn {
-  height: 26px;
-  padding: 0 10px;
+  height: 28px;
+  padding: 0 14px;
   border-radius: 999px;
-  background: var(--accent-saffron);
-  color: #FFFFFF;
-  border: none;
+  background: transparent;
+  border: 1px solid #DCD7CD;
+  color: #181715;
   font-family: var(--font-main);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.12s, background 0.12s;
+  transition: all 0.15s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .search-add-btn:hover {
-  background: #C44E2C;
+  border-color: #181715;
+  background: rgba(24, 23, 21, 0.04);
 }
 
 .search-add-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
+/* Solid Terracotta Stepper Pill (Active in Cart) */
 .search-stepper {
-  height: 26px;
+  height: 28px;
   border-radius: 999px;
   background: var(--accent-saffron);
   color: #FFFFFF;
   display: inline-flex;
   align-items: center;
-  padding: 0 2px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(217, 93, 57, 0.2);
 }
 
 .search-stepper-btn {
@@ -1764,6 +1750,7 @@ body {
   justify-content: center;
   padding: 0;
   line-height: 1;
+  transition: background 0.15s;
 }
 
 .search-stepper-btn:hover {
@@ -1771,10 +1758,11 @@ body {
 }
 
 .search-stepper-qty {
-  min-width: 16px;
+  min-width: 18px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
+  color: #FFFFFF;
   font-variant-numeric: tabular-nums;
   padding: 0 1px;
 }
@@ -1785,14 +1773,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 16px;
+  padding: 50px 16px;
   text-align: center;
   gap: 4px;
 }
 
 .search-empty-state p {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #757068;
   margin: 0;
   font-weight: 500;
 }
@@ -2052,45 +2040,24 @@ body {
     transform: none;
   }
 
-  .search-header-bar {
-    padding: max(10px, env(safe-area-inset-top)) 12px 10px;
-    background: #FAF9F5;
-    border-bottom: 1px solid #ECE8E0;
-    gap: 6px;
+  .search-header-group {
+    padding: max(12px, env(safe-area-inset-top)) 16px 0;
   }
 
-  .search-input-box {
-    height: 38px;
-    padding: 0 10px;
-    gap: 6px;
+  .search-input-row {
+    padding-bottom: 10px;
   }
 
   .search-input {
     font-size: 16px !important; /* CRITICAL: 16px prevents iOS Safari auto-zoom! */
   }
 
-  .search-diet-switch {
-    padding: 2px;
-  }
-
-  .search-diet-btn {
-    font-size: 10px;
-    padding: 3px 6px;
-  }
-
-  .search-close-label {
-    display: inline;
-    font-size: 13px;
-    color: var(--accent-saffron);
-    font-weight: 500;
-  }
-
-  .search-close-svg {
-    display: none;
+  .search-tabs-row {
+    padding: 10px 0 8px;
   }
 
   .search-results-list {
-    padding: 4px 8px 16px;
+    padding: 4px 16px 20px;
   }
 }
 
