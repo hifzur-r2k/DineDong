@@ -535,8 +535,8 @@ body {
   box-shadow: 0 24px 54px rgba(24, 23, 21, 0.18), 0 4px 14px rgba(24, 23, 21, 0.06);
   overflow: hidden;
   transform-style: preserve-3d;
-  /* Centered, pushed slightly back (-40px Z) to sit deeper in ring, and counter-rotated (+18deg) */
-  transform: translate3d(-50%, -50%, -40px) rotateX(18deg);
+  /* Centered, pushed further back into 3D stage (-90px Z) to sit deeply inside the ring */
+  transform: translate3d(-50%, -50%, -90px) rotateX(18deg);
   pointer-events: auto;
   cursor: pointer;
   z-index: 10;
@@ -544,7 +544,7 @@ body {
 }
 
 .centerpiece-frame:hover {
-  transform: translate3d(-50%, -50%, -30px) rotateX(18deg);
+  transform: translate3d(-50%, -50%, -75px) rotateX(18deg);
   box-shadow: 0 28px 64px rgba(24, 23, 21, 0.22), 0 6px 18px rgba(24, 23, 21, 0.08);
 }
 
@@ -1582,13 +1582,13 @@ body {
     border-radius: 4px;
   }
 
-  /* Centerpiece Card on Mobile: Taller portrait ratio, pushed slightly back */
+  /* Centerpiece Card on Mobile: Taller portrait ratio, pushed further back in 3D depth */
   .centerpiece-frame {
     width: 165px;
     height: 285px;
     border-radius: 16px;
     top: 42%;
-    transform: translate3d(-50%, -50%, -30px) rotateX(18deg);
+    transform: translate3d(-50%, -50%, -65px) rotateX(18deg);
   }
 
   .centerpiece-diet-badge {
@@ -1714,7 +1714,7 @@ body {
   .centerpiece-frame {
     width: 150px;
     height: 255px;
-    transform: translate3d(-50%, -50%, -25px) rotateX(18deg);
+    transform: translate3d(-50%, -50%, -50px) rotateX(18deg);
   }
   .ctrl-circle-btn {
     width: 34px;
