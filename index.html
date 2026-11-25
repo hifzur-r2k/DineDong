@@ -23,48 +23,59 @@
          1. Fixed Top Navigation Bar (Mobile Optimized, No Overlaps)
          ==================================================================== -->
     <header class="top-nav">
-      <!-- Left: Minimal Brand Wordmark -->
-      <a class="brand-wordmark" id="brandHome" href="#" aria-label="DINEDONG Home">
-        <span class="brand-title">DINEDONG</span>
-        <span class="brand-dot"></span>
-      </a>
+      <!-- Row 1: Brand, Mode Toggle & Order Drawer Trigger -->
+      <div class="nav-top-row">
+        <!-- Left: Minimal Brand Wordmark -->
+        <a class="brand-wordmark" id="brandHome" href="#" aria-label="DINEDONG Home">
+          <span class="brand-title">DINEDONG</span>
+          <span class="brand-dot"></span>
+        </a>
 
-      <!-- Center: Sleek Mode Pill Toggle (Dine-In / Takeout) -->
-      <div class="mode-toggle-wrapper">
-        <div class="mode-pill" id="modePill" data-mode="dine-in" role="radiogroup" aria-label="Dining Mode Selector">
-          <div class="mode-glider" id="modeGlider"></div>
-          
-          <button type="button" class="mode-btn active" data-target="dine-in" role="radio" aria-checked="true" id="btnDineIn">
-            <span>Dine-In</span>
+        <!-- Center: Sleek Mode Pill Toggle (Dine-In / Takeout) -->
+        <div class="mode-toggle-wrapper">
+          <div class="mode-pill" id="modePill" data-mode="dine-in" role="radiogroup" aria-label="Dining Mode Selector">
+            <div class="mode-glider" id="modeGlider"></div>
+            
+            <button type="button" class="mode-btn active" data-target="dine-in" role="radio" aria-checked="true" id="btnDineIn">
+              <span>Dine-In</span>
+            </button>
+            
+            <button type="button" class="mode-btn" data-target="takeout" role="radio" aria-checked="false" id="btnTakeout">
+              <span>Takeout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Right: Sound & Order Trigger -->
+        <div class="nav-actions-right">
+          <button type="button" class="nav-icon-btn desktop-only" id="soundToggleBtn" title="Toggle Sound Chimes" aria-label="Toggle Sound Chimes">
+            <svg id="soundOnIcon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            <svg id="soundOffIcon" viewBox="0 0 24 24" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
           </button>
-          
-          <button type="button" class="mode-btn" data-target="takeout" role="radio" aria-checked="false" id="btnTakeout">
-            <span>Takeout</span>
+
+          <!-- Compact Order Drawer Trigger -->
+          <button type="button" class="order-trigger-btn" id="openOrderBtn" aria-label="Open Order Drawer">
+            <span class="order-text">Order</span>
+            <span class="order-badge" id="orderCountBadge">0</span>
+            <span class="order-subtotal-nav" id="orderNavSubtotal">₹0</span>
           </button>
         </div>
       </div>
 
-      <!-- Right: Search, Sound & Order Trigger -->
-      <div class="nav-actions">
-        <!-- Minimal Search Trigger Button (Desktop & Mobile) -->
-        <button type="button" class="nav-icon-btn" id="openSearchBtn" title="Search Dishes (/ or Cmd+K)" aria-label="Search Dishes">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      <!-- Prominent Search Bar Trigger (Sleek capsule on Desktop, Full Width on Mobile) -->
+      <button type="button" class="nav-search-bar" id="openSearchBtn" title="Search all 44+ dishes &amp; explore full menu (Press / or Cmd+K)" aria-label="Search dishes and explore full menu">
+        <div class="nav-search-left">
+          <svg class="nav-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
           </svg>
-        </button>
-
-        <button type="button" class="nav-icon-btn desktop-only" id="soundToggleBtn" title="Toggle Sound Chimes" aria-label="Toggle Sound Chimes">
-          <svg id="soundOnIcon" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-          <svg id="soundOffIcon" viewBox="0 0 24 24" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-        </button>
-
-        <!-- Compact Order Drawer Trigger -->
-        <button type="button" class="order-trigger-btn" id="openOrderBtn" aria-label="Open Order Drawer">
-          <span class="order-text">Order</span>
-          <span class="order-badge" id="orderCountBadge">0</span>
-          <span class="order-subtotal-nav" id="orderNavSubtotal">₹0</span>
-        </button>
-      </div>
+          <span class="nav-search-text">Search 44+ dishes &amp; full menu...</span>
+        </div>
+        <div class="nav-search-right">
+          <span class="nav-search-badge">All 44 Varieties</span>
+          <kbd class="nav-search-kbd desktop-only">/</kbd>
+        </div>
+      </button>
     </header>
 
     <!-- ====================================================================

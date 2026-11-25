@@ -102,13 +102,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  background: rgba(246, 244, 239, 0.92);
+  padding: 0 24px;
+  background: rgba(246, 244, 239, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-hairline);
   z-index: 100;
   gap: 12px;
+}
+
+.nav-top-row {
+  display: contents; /* On desktop, children participate directly in top-nav flex */
 }
 
 /* Brand Wordmark: Inter Bold (700) with slightly wider tracking (0.12em) */
@@ -120,6 +124,7 @@ body {
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
+  order: 1;
 }
 
 .brand-title {
@@ -147,6 +152,7 @@ body {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  order: 2;
 }
 
 .mode-pill {
@@ -203,12 +209,115 @@ body {
   color: var(--accent-saffron);
 }
 
-/* Right Nav Actions */
-.nav-actions {
+/* Visible Editorial Nav Search Bar */
+.nav-search-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  height: 38px;
+  width: 320px;
+  padding: 0 10px 0 14px;
+  background: #FFFFFF;
+  border: 1px solid #E2DDD5;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(24, 23, 21, 0.04);
+  font-family: var(--font-main);
+  text-align: left;
+  user-select: none;
+  min-width: 0;
+  order: 3;
+  margin-left: auto;
+}
+
+.nav-search-bar:hover {
+  border-color: #181715;
+  box-shadow: 0 2px 8px rgba(24, 23, 21, 0.08);
+  transform: translateY(-0.5px);
+}
+
+.nav-search-bar:active {
+  transform: scale(0.985);
+}
+
+.nav-search-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.nav-search-icon {
+  width: 15px;
+  height: 15px;
+  color: #8A8479;
   flex-shrink: 0;
+  stroke-width: 2.2;
+}
+
+.nav-search-bar:hover .nav-search-icon {
+  color: var(--accent-saffron);
+}
+
+.nav-search-text {
+  font-size: 13px;
+  color: #757068;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+}
+
+.nav-search-bar:hover .nav-search-text {
+  color: var(--text-primary);
+}
+
+.nav-search-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.nav-search-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #181715;
+  background: #EFECE6;
+  padding: 2.5px 8px;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-search-bar:hover .nav-search-badge {
+  background: var(--text-primary);
+  color: #FFFFFF;
+}
+
+.nav-search-kbd {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #8A8479;
+  background: #F6F4EF;
+  border: 1px solid #DFDBD1;
+  border-radius: 4px;
+  padding: 1px 5px;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+/* Right Nav Actions */
+.nav-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  order: 4;
 }
 
 .nav-icon-btn {
@@ -1788,6 +1897,15 @@ body {
 /* ==========================================================================
    Responsive Adaptations & Mobile Navbar Fix
    ========================================================================== */
+@media (max-width: 860px) {
+  .nav-search-bar {
+    width: 240px;
+  }
+  .nav-search-badge {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none !important;
@@ -1796,12 +1914,22 @@ body {
 
 @media (max-width: 640px) {
   :root {
-    --header-height: 56px;
+    --header-height: 98px;
   }
 
   .top-nav {
-    padding: 0 12px;
-    gap: 6px;
+    height: auto;
+    padding: 8px 12px 10px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .nav-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    position: relative;
   }
 
   .brand-title {
@@ -1812,6 +1940,12 @@ body {
   .brand-dot {
     width: 5px;
     height: 5px;
+  }
+
+  .mode-toggle-wrapper {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
   }
 
   .mode-pill {
@@ -1830,10 +1964,22 @@ body {
     gap: 5px;
   }
 
-  .nav-icon-btn {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
+  .nav-search-bar {
+    width: 100%;
+    height: 38px;
+    order: unset;
+    margin: 0;
+    padding: 0 10px 0 12px;
+  }
+
+  .nav-search-text {
+    font-size: 12.5px;
+  }
+
+  .nav-search-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 2px 7px;
   }
 
   .order-subtotal-nav {
