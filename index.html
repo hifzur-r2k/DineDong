@@ -82,6 +82,21 @@
           Spiced golden potato batata vada, fiery garlic-peanut dry chutney, toasted buttered pav.
         </p>
 
+        <!-- Compact Understated Diet Filter Pill (All | Veg | Non-Veg) Relocated Above 3D Ring -->
+        <div class="diet-filter-pill" id="dietFilterPill" role="radiogroup" aria-label="Filter dishes by diet">
+          <button type="button" class="diet-filter-btn active" data-filter="all" id="btnFilterAll" role="radio" aria-checked="true">
+            All
+          </button>
+          <button type="button" class="diet-filter-btn" data-filter="veg" id="btnFilterVeg" role="radio" aria-checked="false">
+            <span class="diet-btn-icon veg" aria-hidden="true"><span class="diet-dot"></span></span>
+            <span>Veg</span>
+          </button>
+          <button type="button" class="diet-filter-btn" data-filter="non-veg" id="btnFilterNonVeg" role="radio" aria-checked="false">
+            <span class="diet-btn-icon non-veg" aria-hidden="true"><span class="diet-dot"></span></span>
+            <span>Non-Veg</span>
+          </button>
+        </div>
+
         <div class="spotlight-actions" style="display: none;">
           <span class="spotlight-price" id="spotlightPrice">₹120</span>
           <button type="button" class="spotlight-add-btn" id="spotlightAddBtn">
@@ -132,68 +147,51 @@
       </section>
 
       <!-- ====================================================================
-           Compact Floating Blinkit-Style "View Cart" Pill (Only visible when cart >= 1 item)
+           4. Clean Decluttered Bottom Dock (Max 2 Rows: Floating View Cart + Minimal Nav Controls)
            ==================================================================== -->
-      <aside class="floating-cart-pill" id="floatingCartPill" role="button" tabindex="0" aria-label="View Cart" style="display: none;">
-        <!-- Left: Up to 3 overlapping circular thumbnails -->
-        <div class="cart-pill-thumbs" id="cartPillThumbs" aria-hidden="true"></div>
-
-        <!-- Center: Two clean stacked lines in Inter -->
-        <div class="cart-pill-meta">
-          <span class="cart-pill-title">View cart</span>
-          <span class="cart-pill-sub" id="cartPillSub">0 items • ₹0</span>
-        </div>
-
-        <!-- Right: Subtle circular button with a crisp white > chevron icon -->
-        <div class="cart-pill-arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </div>
-      </aside>
-
-      <!-- Minimalist Frameless Bottom Controls: Curated Diet Pill + Circular Nav Buttons -->
       <section class="bottom-controls-bar" aria-label="Showcase Controls">
-        <div class="bottom-controls-cluster">
-          <!-- Curated Diet Filter Pill (All / Veg / Non-Veg) -->
-          <div class="diet-filter-pill" id="dietFilterPill" role="radiogroup" aria-label="Filter dishes by diet">
-            <button type="button" class="diet-filter-btn active" data-filter="all" id="btnFilterAll" role="radio" aria-checked="true">
-              All
-            </button>
-            <button type="button" class="diet-filter-btn" data-filter="veg" id="btnFilterVeg" role="radio" aria-checked="false">
-              <span class="diet-btn-icon veg" aria-hidden="true"><span class="diet-dot"></span></span>
-              <span>Veg</span>
-            </button>
-            <button type="button" class="diet-filter-btn" data-filter="non-veg" id="btnFilterNonVeg" role="radio" aria-checked="false">
-              <span class="diet-btn-icon non-veg" aria-hidden="true"><span class="diet-dot"></span></span>
-              <span>Non-Veg</span>
-            </button>
+        <!-- Row 1: Floating Terracotta Blinkit-Style "View Cart" Pill (Only visible when cart >= 1 item) -->
+        <aside class="floating-cart-pill" id="floatingCartPill" role="button" tabindex="0" aria-label="View Cart" style="display: none;">
+          <!-- Left: Up to 3 overlapping circular thumbnails -->
+          <div class="cart-pill-thumbs" id="cartPillThumbs" aria-hidden="true"></div>
+
+          <!-- Center: Two clean stacked lines in Inter -->
+          <div class="cart-pill-meta">
+            <span class="cart-pill-title">View cart</span>
+            <span class="cart-pill-sub" id="cartPillSub">0 items • ₹0</span>
           </div>
 
-          <!-- Circular Navigation Controls (‹, ‖ / ›, ›) -->
-          <div class="ring-nav-cluster">
-            <button type="button" class="ctrl-circle-btn" id="btnPrevDish" title="Previous Dish" aria-label="Previous Dish">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-            </button>
-
-            <button type="button" class="ctrl-circle-btn ctrl-play-btn" id="btnPauseRotation" title="Toggle Auto-Rotation" aria-label="Toggle Auto-Rotation">
-              <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="7" y="5" width="3.2" height="14" rx="1"/>
-                <rect x="13.8" y="5" width="3.2" height="14" rx="1"/>
-              </svg>
-              <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
-                <polygon points="8 5 19 12 8 19 8 5"/>
-              </svg>
-            </button>
-
-            <button type="button" class="ctrl-circle-btn" id="btnNextDish" title="Next Dish" aria-label="Next Dish">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
+          <!-- Right: Subtle circular button with a crisp white > chevron icon -->
+          <div class="cart-pill-arrow" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </div>
+        </aside>
+
+        <!-- Row 2: Minimalist Ring Nav Controls: < || > -->
+        <div class="ring-nav-cluster" id="ringNavCluster" aria-label="Ring Navigation Controls">
+          <button type="button" class="ctrl-circle-btn" id="btnPrevDish" title="Previous Dish" aria-label="Previous Dish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+
+          <button type="button" class="ctrl-circle-btn ctrl-play-btn" id="btnPauseRotation" title="Toggle Auto-Rotation" aria-label="Toggle Auto-Rotation">
+            <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="7" y="5" width="3.2" height="14" rx="1"/>
+              <rect x="13.8" y="5" width="3.2" height="14" rx="1"/>
+            </svg>
+            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;">
+              <polygon points="8 5 19 12 8 19 8 5"/>
+            </svg>
+          </button>
+
+          <button type="button" class="ctrl-circle-btn" id="btnNextDish" title="Next Dish" aria-label="Next Dish">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
         </div>
       </section>
 
