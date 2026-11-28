@@ -10,6 +10,8 @@ import { DISHES, FALLBACK_IMAGE_URL, getThumbnailUrl, getHighResUrl } from './di
 // ============================================================================
 const state = {
   orderMode: 'dine-in', // 'dine-in' | 'takeout'
+  tableNumber: '04',
+  takeoutPickupTime: 'ASAP · 15m',
   dietFilter: 'all',    // 'all' | 'veg' | 'non-veg'
   cart: new Map(),      // dishId -> { dish, quantity }
   currentAngle: 0,      // in degrees
@@ -31,8 +33,6 @@ const state = {
   lastDragTime: 0,
   currentFrontIndex: 0,
   centerpieceActiveDish: null,
-  soundEnabled: false,
-  audioCtx: null,
   isTargetAnimating: false,
   targetAngle: 0,
 };
@@ -96,29 +96,52 @@ const els = {
   btnPrevDish: document.getElementById('btnPrevDish'),
   btnNextDish: document.getElementById('btnNextDish'),
 
-  // Order Drawer (Cart)
+  // Order Drawer (Swiggy/Blinkit Grouped Card Stack UX)
   openOrderBtn: document.getElementById('openOrderBtn'),
   orderCountBadge: document.getElementById('orderCountBadge'),
   orderNavSubtotal: document.getElementById('orderNavSubtotal'),
   orderDrawer: document.getElementById('orderDrawer'),
   drawerBackdrop: document.getElementById('drawerBackdrop'),
   drawerCloseBtn: document.getElementById('drawerCloseBtn'),
-  drawerItemCountSubtitle: document.getElementById('drawerItemCountSubtitle'),
-  drawerActiveModeLabel: document.getElementById('drawerActiveModeLabel'),
-  drawerEstTime: document.getElementById('drawerEstTime'),
+  drawerCartView: document.getElementById('drawerCartView'),
+  drawerReceiptView: document.getElementById('drawerReceiptView'),
+  drawerCardStack: document.getElementById('drawerCardStack'),
+  cartItemsCard: document.getElementById('cartItemsCard'),
   drawerItemsList: document.getElementById('drawerItemsList'),
+  addMoreDivider: document.getElementById('addMoreDivider'),
+  addMoreItemsBtn: document.getElementById('addMoreItemsBtn'),
+  instructionsDivider: document.getElementById('instructionsDivider'),
+  cookingInstructionsRow: document.getElementById('cookingInstructionsRow'),
+  kitchenNoteInput: document.getElementById('kitchenNoteInput'),
+  serviceCard: document.getElementById('serviceCard'),
+  contextDineIn: document.getElementById('contextDineIn'),
+  contextTakeout: document.getElementById('contextTakeout'),
+  tableNumberInput: document.getElementById('tableNumberInput'),
+  pickupPillsGroup: document.getElementById('pickupPillsGroup'),
+  takeoutContactInput: document.getElementById('takeoutContactInput'),
+  billDetailsCard: document.getElementById('billDetailsCard'),
   billSubtotal: document.getElementById('billSubtotal'),
   billGst: document.getElementById('billGst'),
   billPackagingRow: document.getElementById('billPackagingRow'),
   billPackagingLabel: document.getElementById('billPackagingLabel'),
   billPackagingAmount: document.getElementById('billPackagingAmount'),
   billTotal: document.getElementById('billTotal'),
+  drawerFooter: document.getElementById('drawerFooter'),
+  footerTotalVal: document.getElementById('footerTotalVal'),
   checkoutBtn: document.getElementById('checkoutBtn'),
 
-  // Receipt Modal
-  receiptModalBackdrop: document.getElementById('receiptModalBackdrop'),
-  receiptOrderId: document.getElementById('receiptOrderId'),
-  receiptCloseBtn: document.getElementById('receiptCloseBtn'),
+  // Digital Receipt View Elements
+  receiptTokenId: document.getElementById('receiptTokenId'),
+  receiptMetaDetails: document.getElementById('receiptMetaDetails'),
+  receiptItemsBreakdown: document.getElementById('receiptItemsBreakdown'),
+  receiptNoteCallout: document.getElementById('receiptNoteCallout'),
+  receiptBillSubtotal: document.getElementById('receiptBillSubtotal'),
+  receiptBillGst: document.getElementById('receiptBillGst'),
+  receiptPackagingRow: document.getElementById('receiptPackagingRow'),
+  receiptPackagingAmount: document.getElementById('receiptPackagingAmount'),
+  receiptBillTotal: document.getElementById('receiptBillTotal'),
+  receiptWhatsAppBtn: document.getElementById('receiptWhatsAppBtn'),
+  receiptNewOrderBtn: document.getElementById('receiptNewOrderBtn'),
 
   // Minimal Search Overlay
   openSearchBtn: document.getElementById('openSearchBtn'),
@@ -128,57 +151,54 @@ const els = {
   searchClearBtn: document.getElementById('searchClearBtn'),
   searchDietSwitch: document.getElementById('searchDietSwitch'),
   dishSearchInput: document.getElementById('dishSearchInput'),
-  searchResultsList: document.getElementById('searchResultsList'),
-
-  // Sound Toggle
-  soundToggleBtn: document.getElementById('soundToggleBtn'),
-  soundOnIcon: document.getElementById('soundOnIcon'),
-  soundOffIcon: document.getElementById('soundOffIcon')
+  searchResultsList: document.getElementById('searchResultsList')
 };
 
 // ============================================================================
-// Sound FX (Web Audio API Synthesizers)
+// Tactile Mobile Haptics Engine (navigator.vibrate) - No Audio
 // ============================================================================
-function initAudio() {
-  if (!state.audioCtx) {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (AudioCtx) state.audioCtx = new AudioCtx();
+const haptics = {
+  lastSpinTime: 0,
+  lastTapTime: 0,
+
+  // Subtle mechanical ratchet tick when manually spinning dishes
+  spinTick(ms = 8) {
+    const now = performance.now();
+    // 30ms throttle prevents buzz blur and keeps each dish card notched
+    if (now - this.lastSpinTime < 30) return;
+    this.lastSpinTime = now;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(ms);
+      }
+    } catch (_) {}
+  },
+
+  // Firmer tactile bump for actions (+ Add, - / +, filters, card selection)
+  tap(ms = 14) {
+    const now = performance.now();
+    if (now - this.lastTapTime < 45) return;
+    this.lastTapTime = now;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(ms);
+      }
+    } catch (_) {}
+  },
+
+  // Celebratory multi-pulse haptic confirmation for placing an order
+  success(pattern = [15, 50, 25]) {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    } catch (_) {}
   }
-}
+};
 
-function playTickSound() {
-  if (!state.soundEnabled || !state.audioCtx) return;
-  try {
-    const osc = state.audioCtx.createOscillator();
-    const gain = state.audioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(360, state.audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, state.audioCtx.currentTime + 0.02);
-    gain.gain.setValueAtTime(0.03, state.audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.02);
-    osc.connect(gain);
-    gain.connect(state.audioCtx.destination);
-    osc.start();
-    osc.stop(state.audioCtx.currentTime + 0.02);
-  } catch (err) {}
-}
-
-function playChimeSound() {
-  if (!state.soundEnabled || !state.audioCtx) return;
-  try {
-    const osc = state.audioCtx.createOscillator();
-    const gain = state.audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(540, state.audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(720, state.audioCtx.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.07, state.audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.16);
-    osc.connect(gain);
-    gain.connect(state.audioCtx.destination);
-    osc.start();
-    osc.stop(state.audioCtx.currentTime + 0.16);
-  } catch (err) {}
-}
+let lastWheelInteractionTime = 0;
+let lastNavBtnInteractionTime = 0;
+let lastHapticDishStep = 0;
 
 // ============================================================================
 // Responsive Proportioned Ring Radius (No PC or Mobile Clipping)
@@ -250,6 +270,7 @@ function buildFoodRing() {
     card.addEventListener('click', (e) => {
       if (state.dragDistance > 6) return;
       e.stopPropagation();
+      haptics.tap(10);
       lockOnDish(dish, true);
     });
 
@@ -385,7 +406,17 @@ function animationLoop(timestamp) {
       updatePlatedCenterpiece(frontDish);
     }
     updateActiveCardHighlight();
-    playTickSound();
+
+    // Tactile haptics ONLY during manual user interaction:
+    // (dragging/swiping, mouse wheel scroll, or tapping < / > buttons)
+    // Never fires during passive background auto-rotation
+    const isUserActive = state.isDragging || 
+                         (performance.now() - lastWheelInteractionTime < 400) ||
+                         (performance.now() - lastNavBtnInteractionTime < 800);
+
+    if (isUserActive) {
+      haptics.spinTick(8);
+    }
   }
 
   requestAnimationFrame(animationLoop);
@@ -694,6 +725,7 @@ els.ringViewport.addEventListener('pointerdown', (e) => {
   state.lastDragTime = performance.now();
   state.dragVelocity = 0;
   state.dragDistance = 0;
+  lastHapticDishStep = Math.round((-state.currentAngle) / angleStep);
 
   els.ringViewport.classList.add('is-dragging');
 });
@@ -708,6 +740,13 @@ window.addEventListener('pointermove', (e) => {
   
   const sensitivity = 0.18;
   state.currentAngle = state.dragStartAngle + (deltaX * sensitivity);
+
+  // Tactile haptics when manually spinning/dragging:
+  const currentStep = Math.round((-state.currentAngle) / angleStep);
+  if (currentStep !== lastHapticDishStep) {
+    lastHapticDishStep = currentStep;
+    haptics.spinTick(7);
+  }
 
   if (dt > 10) {
     const stepDx = e.clientX - state.lastDragX;
@@ -737,10 +776,41 @@ window.addEventListener('pointercancel', () => {
   }
 });
 
+// Desktop Trackpad & Mouse Wheel Horizontal Swipes into Ring Rotation
+els.ringViewport.addEventListener('wheel', (e) => {
+  let delta = 0;
+  if (Math.abs(e.deltaX) >= Math.abs(e.deltaY) && Math.abs(e.deltaX) > 0.5) {
+    delta = -e.deltaX;
+    e.preventDefault();
+  } else if (e.shiftKey && Math.abs(e.deltaY) > 0.5) {
+    delta = -e.deltaY;
+    e.preventDefault();
+  } else if (Math.abs(e.deltaY) > 1.0) {
+    delta = -e.deltaY * 0.45;
+    e.preventDefault();
+  } else {
+    return;
+  }
+
+  lastWheelInteractionTime = performance.now();
+
+  if (state.isLocked || state.hoveredDish || state.centerpieceActiveDish) {
+    unlockAndResume();
+  }
+
+  state.currentAngle += delta * 0.15;
+  const currentStep = Math.round((-state.currentAngle) / angleStep);
+  if (currentStep !== lastHapticDishStep) {
+    lastHapticDishStep = currentStep;
+    haptics.spinTick(7);
+  }
+}, { passive: false });
+
 // ============================================================================
 // Showcase Controls
 // ============================================================================
 els.btnPauseRotation.addEventListener('click', () => {
+  haptics.tap(10);
   state.isManualPaused = !state.isManualPaused;
   state.isPaused = state.isManualPaused;
 
@@ -762,6 +832,8 @@ els.btnPauseRotation.addEventListener('click', () => {
 });
 
 function stepDish(direction) {
+  lastNavBtnInteractionTime = performance.now();
+  haptics.spinTick(12);
   if (state.isLocked || state.hoveredDish || state.centerpieceActiveDish) {
     unlockAndResume();
   }
@@ -807,9 +879,8 @@ function setDietFilter(filter) {
     });
   }
 
-  // 2. Audio feedback
-  initAudio();
-  playChimeSound();
+  // 2. Tactile haptic feedback
+  haptics.tap(12);
 
   // 3. Determine target front dish safely:
   // Check if current active/locked dish is present in the newly filtered list
@@ -866,45 +937,109 @@ if (els.dietFilterBtns) {
 }
 
 // ============================================================================
-// Dine-In / Takeout Mode Switcher
+// Smart Dine-In / Takeout Context & Mode Switcher
 // ============================================================================
+function initOrderContext() {
+  // Read ?table=X from URL if present
+  const urlParams = new URLSearchParams(window.location.search);
+  const tableParam = urlParams.get('table');
+  if (tableParam) {
+    const cleanTable = tableParam.trim();
+    if (cleanTable) {
+      state.tableNumber = cleanTable;
+      if (els.tableNumberInput) {
+        els.tableNumberInput.value = cleanTable;
+      }
+    }
+  } else if (els.tableNumberInput) {
+    state.tableNumber = els.tableNumberInput.value.trim() || '04';
+  }
+
+  if (els.tableNumberInput) {
+    els.tableNumberInput.addEventListener('input', (e) => {
+      state.tableNumber = e.target.value.trim() || '04';
+      if (state.orderMode === 'dine-in' && els.drawerActiveModeLabel) {
+        els.drawerActiveModeLabel.textContent = `Dine-In (Table ${state.tableNumber})`;
+      }
+    });
+  }
+
+  if (els.pickupPillsGroup) {
+    const pills = els.pickupPillsGroup.querySelectorAll('.pickup-pill');
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        haptics.tap(10);
+        pills.forEach((p) => {
+          p.classList.remove('active');
+          p.setAttribute('aria-checked', 'false');
+        });
+        pill.classList.add('active');
+        pill.setAttribute('aria-checked', 'true');
+        state.takeoutPickupTime = pill.dataset.time || 'ASAP · 15m';
+        if (state.orderMode === 'takeout' && els.drawerActiveModeLabel) {
+          els.drawerActiveModeLabel.textContent = `Takeout (${state.takeoutPickupTime})`;
+        }
+      });
+    });
+  }
+}
+
 function setOrderMode(mode) {
   state.orderMode = mode;
-  els.modePill.dataset.mode = mode;
+  if (els.modePill) els.modePill.dataset.mode = mode;
 
   if (mode === 'dine-in') {
-    els.btnDineIn.classList.add('active');
-    els.btnTakeout.classList.remove('active');
-    els.btnDineIn.setAttribute('aria-checked', 'true');
-    els.btnTakeout.setAttribute('aria-checked', 'false');
-    els.drawerActiveModeLabel.textContent = 'Dine-In (Table 04)';
-    els.drawerEstTime.textContent = 'Est. 20-25 mins';
-    els.billPackagingLabel.textContent = 'Table Service';
-    els.billPackagingAmount.textContent = '₹0';
+    if (els.btnDineIn) {
+      els.btnDineIn.classList.add('active');
+      els.btnDineIn.setAttribute('aria-checked', 'true');
+    }
+    if (els.btnTakeout) {
+      els.btnTakeout.classList.remove('active');
+      els.btnTakeout.setAttribute('aria-checked', 'false');
+    }
+    const tableStr = state.tableNumber ? `Table ${state.tableNumber}` : 'Table 04';
+    if (els.drawerActiveModeLabel) els.drawerActiveModeLabel.textContent = `Dine-In (${tableStr})`;
+    if (els.contextDineIn) els.contextDineIn.style.display = 'flex';
+    if (els.contextTakeout) els.contextTakeout.style.display = 'none';
+    if (els.billPackagingRow) els.billPackagingRow.style.display = 'none';
+    if (els.billPackagingLabel) els.billPackagingLabel.textContent = 'Table Service';
+    if (els.billPackagingAmount) els.billPackagingAmount.textContent = '₹0';
   } else {
-    els.btnTakeout.classList.add('active');
-    els.btnDineIn.classList.remove('active');
-    els.btnTakeout.setAttribute('aria-checked', 'true');
-    els.btnDineIn.setAttribute('aria-checked', 'false');
-    els.drawerActiveModeLabel.textContent = 'Express Takeout (Pickup)';
-    els.drawerEstTime.textContent = 'Est. 15-20 mins';
-    els.billPackagingLabel.textContent = 'Packaging';
-    els.billPackagingAmount.textContent = '₹30';
+    if (els.btnTakeout) {
+      els.btnTakeout.classList.add('active');
+      els.btnTakeout.setAttribute('aria-checked', 'true');
+    }
+    if (els.btnDineIn) {
+      els.btnDineIn.classList.remove('active');
+      els.btnDineIn.setAttribute('aria-checked', 'false');
+    }
+    const pickupStr = state.takeoutPickupTime || 'ASAP · 15m';
+    if (els.drawerActiveModeLabel) els.drawerActiveModeLabel.textContent = `Takeout (${pickupStr})`;
+    if (els.contextDineIn) els.contextDineIn.style.display = 'none';
+    if (els.contextTakeout) els.contextTakeout.style.display = 'flex';
+    if (els.billPackagingRow) els.billPackagingRow.style.display = 'flex';
+    if (els.billPackagingLabel) els.billPackagingLabel.textContent = 'Eco Packaging';
+    if (els.billPackagingAmount) els.billPackagingAmount.textContent = '₹30';
   }
 
   updateHeroSpotlight(currentDishes[state.currentFrontIndex] || currentDishes[0]);
   renderOrderDrawer();
 }
 
-els.btnDineIn.addEventListener('click', () => setOrderMode('dine-in'));
-els.btnTakeout.addEventListener('click', () => setOrderMode('takeout'));
+els.btnDineIn.addEventListener('click', () => {
+  haptics.tap(10);
+  setOrderMode('dine-in');
+});
+els.btnTakeout.addEventListener('click', () => {
+  haptics.tap(10);
+  setOrderMode('takeout');
+});
 
 // ============================================================================
 // Order Drawer (Cart Management)
 // ============================================================================
 function addToOrder(dish, qty = 1) {
-  initAudio();
-  playChimeSound();
+  haptics.tap(14);
 
   const existing = state.cart.get(dish.id);
   let totalForDish = qty;
@@ -924,6 +1059,8 @@ function updateItemQuantity(dishId, delta) {
   const item = state.cart.get(dishId);
   if (!item) return;
 
+  haptics.tap(10);
+
   item.quantity += delta;
   if (item.quantity <= 0) {
     state.cart.delete(dishId);
@@ -939,6 +1076,7 @@ function updateItemQuantity(dishId, delta) {
 }
 
 function removeItemFromOrder(dishId) {
+  haptics.tap(12);
   state.cart.delete(dishId);
   updateOrderBadge(false);
   renderOrderDrawer();
@@ -973,24 +1111,40 @@ function updateOrderBadge(hasNewItemAdded = false) {
 
 function renderOrderDrawer() {
   const items = Array.from(state.cart.values());
-  const totalCount = items.reduce((sum, it) => sum + it.quantity, 0);
-
-  els.drawerItemCountSubtitle.textContent = `${totalCount} item${totalCount === 1 ? '' : 's'} selected`;
 
   if (items.length === 0) {
     els.drawerItemsList.innerHTML = `
-      <div class="drawer-empty-state">
-        <p style="font-weight: 500; color: var(--text-primary);">Your order is empty</p>
-        <p style="font-size: 12px;">Tap any photo on the ring to curate your order.</p>
+      <div class="cart-empty-state">
+        <div class="empty-cart-circle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+        <h3 class="empty-cart-title">Your order is empty</h3>
+        <p class="empty-cart-subtitle">Explore dishes from the ring or search menu to curate your order.</p>
       </div>
     `;
 
-    els.billSubtotal.textContent = '₹0';
-    els.billGst.textContent = '₹0';
-    els.billTotal.textContent = '₹0';
-    els.checkoutBtn.disabled = true;
+    if (els.addMoreDivider) els.addMoreDivider.style.display = 'none';
+    if (els.addMoreItemsBtn) els.addMoreItemsBtn.style.display = 'none';
+    if (els.instructionsDivider) els.instructionsDivider.style.display = 'none';
+    if (els.cookingInstructionsRow) els.cookingInstructionsRow.style.display = 'none';
+    if (els.serviceCard) els.serviceCard.style.display = 'none';
+    if (els.billDetailsCard) els.billDetailsCard.style.display = 'none';
+
+    if (els.billSubtotal) els.billSubtotal.textContent = '₹0';
+    if (els.billGst) els.billGst.textContent = '₹0';
+    if (els.billPackagingRow) els.billPackagingRow.style.display = 'none';
+    if (els.billTotal) els.billTotal.textContent = '₹0';
+    if (els.footerTotalVal) els.footerTotalVal.textContent = '₹0';
+    if (els.checkoutBtn) els.checkoutBtn.disabled = true;
     return;
   }
+
+  if (els.addMoreDivider) els.addMoreDivider.style.display = 'block';
+  if (els.addMoreItemsBtn) els.addMoreItemsBtn.style.display = 'flex';
+  if (els.instructionsDivider) els.instructionsDivider.style.display = 'block';
+  if (els.cookingInstructionsRow) els.cookingInstructionsRow.style.display = 'flex';
+  if (els.serviceCard) els.serviceCard.style.display = 'block';
+  if (els.billDetailsCard) els.billDetailsCard.style.display = 'flex';
 
   els.drawerItemsList.innerHTML = '';
   let subtotal = 0;
@@ -999,29 +1153,28 @@ function renderOrderDrawer() {
     const itemTotal = dish.price * quantity;
     subtotal += itemTotal;
 
+    const isVeg = dish.veg === true;
     const row = document.createElement('div');
-    row.className = 'drawer-item';
+    row.className = 'cart-item-row';
+    row.dataset.dishId = dish.id;
     row.innerHTML = `
-      <img src="${getThumbnailUrl(dish.imageId)}" alt="${dish.name}" class="drawer-item-img" onerror="this.onerror=null;this.src='${FALLBACK_IMAGE_URL}'" />
-      <div class="drawer-item-info">
-        <h4 class="drawer-item-title">${dish.name}</h4>
-        <span class="drawer-item-price">₹${dish.price} &times; ${quantity}</span>
+      <span class="diet-icon ${isVeg ? 'veg' : 'non-veg'}" title="${isVeg ? 'Vegetarian' : 'Non-Vegetarian'}" aria-label="${isVeg ? 'Vegetarian' : 'Non-Vegetarian'}">
+        <span class="diet-symbol"></span>
+      </span>
+      <div class="cart-item-details">
+        <span class="cart-item-name">${dish.name}</span>
+        <span class="cart-item-unit-price num-tabular">₹${dish.price}</span>
       </div>
-      <div class="drawer-item-actions">
-        <div class="item-qty-stepper">
-          <button type="button" class="btn-item-minus" aria-label="Decrease">&minus;</button>
-          <span>${quantity}</span>
-          <button type="button" class="btn-item-plus" aria-label="Increase">&plus;</button>
-        </div>
-        <button type="button" class="item-delete-btn" title="Remove" aria-label="Remove Item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
+      <div class="cart-item-stepper">
+        <button type="button" class="cart-stepper-btn btn-item-minus" aria-label="Decrease quantity">&minus;</button>
+        <span class="cart-stepper-val num-tabular">${quantity}</span>
+        <button type="button" class="cart-stepper-btn btn-item-plus" aria-label="Increase quantity">&plus;</button>
       </div>
+      <span class="cart-item-total num-tabular">₹${itemTotal}</span>
     `;
 
     row.querySelector('.btn-item-minus').addEventListener('click', () => updateItemQuantity(dish.id, -1));
     row.querySelector('.btn-item-plus').addEventListener('click', () => updateItemQuantity(dish.id, 1));
-    row.querySelector('.item-delete-btn').addEventListener('click', () => removeItemFromOrder(dish.id));
 
     els.drawerItemsList.appendChild(row);
   });
@@ -1030,10 +1183,13 @@ function renderOrderDrawer() {
   const packagingFee = state.orderMode === 'takeout' ? 30 : 0;
   const grandTotal = subtotal + gst + packagingFee;
 
-  els.billSubtotal.textContent = `₹${subtotal}`;
-  els.billGst.textContent = `₹${gst}`;
-  els.billTotal.textContent = `₹${grandTotal}`;
-  els.checkoutBtn.disabled = false;
+  if (els.billSubtotal) els.billSubtotal.textContent = `₹${subtotal}`;
+  if (els.billGst) els.billGst.textContent = `₹${gst}`;
+  if (els.billPackagingRow) els.billPackagingRow.style.display = packagingFee > 0 ? 'flex' : 'none';
+  if (els.billPackagingAmount) els.billPackagingAmount.textContent = `₹${packagingFee}`;
+  if (els.billTotal) els.billTotal.textContent = `₹${grandTotal}`;
+  if (els.footerTotalVal) els.footerTotalVal.textContent = `₹${grandTotal}`;
+  if (els.checkoutBtn) els.checkoutBtn.disabled = false;
 }
 
 // ============================================================================
@@ -1101,6 +1257,12 @@ if (els.floatingCartPill) {
 }
 
 function openDrawer() {
+  haptics.tap(12);
+  // If user opens drawer with an active cart, ensure cart view is displayed
+  if (els.drawerReceiptView && els.drawerReceiptView.style.display !== 'none' && state.cart.size > 0) {
+    els.drawerReceiptView.style.display = 'none';
+    if (els.drawerCartView) els.drawerCartView.style.display = 'flex';
+  }
   els.orderDrawer.classList.add('open');
   els.drawerBackdrop.classList.add('open');
   els.orderDrawer.setAttribute('aria-hidden', 'false');
@@ -1108,29 +1270,140 @@ function openDrawer() {
 }
 
 function closeDrawer() {
+  haptics.tap(10);
   els.orderDrawer.classList.remove('open');
   els.drawerBackdrop.classList.remove('open');
   els.orderDrawer.setAttribute('aria-hidden', 'true');
   if (!state.isManualPaused && !state.isLocked && !state.isPinnedByClick && !state.isCenterpieceHovered) {
     state.isPaused = false;
   }
+
+  // If closed after confirming an order, reset to cart view for subsequent order
+  setTimeout(() => {
+    if (els.drawerReceiptView && els.drawerReceiptView.style.display !== 'none') {
+      els.drawerReceiptView.style.display = 'none';
+      if (els.drawerCartView) els.drawerCartView.style.display = 'flex';
+      if (els.kitchenNoteInput) els.kitchenNoteInput.value = '';
+      renderOrderDrawer();
+    }
+  }, 350);
 }
 
 els.openOrderBtn.addEventListener('click', openDrawer);
 els.drawerCloseBtn.addEventListener('click', closeDrawer);
 els.drawerBackdrop.addEventListener('click', closeDrawer);
+if (els.addMoreItemsBtn) {
+  els.addMoreItemsBtn.addEventListener('click', () => {
+    haptics.tap(10);
+    closeDrawer();
+  });
+}
 
+// Morph Cart Drawer into Digital Receipt with Token & WhatsApp Share
 els.checkoutBtn.addEventListener('click', () => {
   if (state.cart.size === 0) return;
-  const randomNum = Math.floor(1000 + Math.random() * 9000);
-  els.receiptOrderId.textContent = `ORDER #DD-${randomNum}`;
+  haptics.success([15, 50, 25]);
 
-  closeDrawer();
-  els.receiptModalBackdrop.classList.add('open');
+  // Generate 3-digit order token e.g. #DD-104
+  const randomNum = Math.floor(100 + Math.random() * 900);
+  const orderToken = `#DD-${randomNum}`;
 
+  // Take snapshot of items before clearing cart
+  const itemsSnapshot = Array.from(state.cart.values()).map(({ dish, quantity }) => ({
+    name: dish.name,
+    price: dish.price,
+    quantity,
+    total: dish.price * quantity
+  }));
+
+  const subtotal = itemsSnapshot.reduce((sum, it) => sum + it.total, 0);
+  const gst = Math.round(subtotal * 0.05);
+  const packagingFee = state.orderMode === 'takeout' ? 30 : 0;
+  const grandTotal = subtotal + gst + packagingFee;
+
+  const kitchenNote = els.kitchenNoteInput ? els.kitchenNoteInput.value.trim() : '';
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  let modeSummary = '';
+  let metaContext = '';
+  if (state.orderMode === 'dine-in') {
+    const tableStr = state.tableNumber ? `Table ${state.tableNumber}` : 'Table 04';
+    modeSummary = `Dine-In (${tableStr})`;
+    metaContext = `Dine-In • ${tableStr}`;
+  } else {
+    const pickupTime = state.takeoutPickupTime || 'ASAP · 15m';
+    const contact = els.takeoutContactInput && els.takeoutContactInput.value.trim()
+      ? els.takeoutContactInput.value.trim()
+      : 'Counter Pickup';
+    modeSummary = `Takeout (${pickupTime}) — ${contact}`;
+    metaContext = `Takeout (${pickupTime}) • ${contact}`;
+  }
+
+  // Populate Digital Receipt Elements
+  if (els.receiptTokenId) els.receiptTokenId.textContent = orderToken;
+  if (els.receiptMetaDetails) els.receiptMetaDetails.textContent = `${metaContext} • Today, ${timeStr}`;
+
+  if (els.receiptItemsBreakdown) {
+    els.receiptItemsBreakdown.innerHTML = itemsSnapshot.map(it => `
+      <div class="receipt-breakdown-row">
+        <span class="receipt-breakdown-name">
+          ${it.name}
+          <span class="receipt-breakdown-qty">&times;${it.quantity}</span>
+        </span>
+        <span class="receipt-breakdown-price num-tabular">₹${it.total}</span>
+      </div>
+    `).join('');
+  }
+
+  if (els.receiptNoteCallout) {
+    if (kitchenNote) {
+      els.receiptNoteCallout.textContent = `Kitchen Note: "${kitchenNote}"`;
+      els.receiptNoteCallout.style.display = 'block';
+    } else {
+      els.receiptNoteCallout.style.display = 'none';
+    }
+  }
+
+  if (els.receiptBillSubtotal) els.receiptBillSubtotal.textContent = `₹${subtotal}`;
+  if (els.receiptBillGst) els.receiptBillGst.textContent = `₹${gst}`;
+  if (els.receiptPackagingRow) els.receiptPackagingRow.style.display = packagingFee > 0 ? 'flex' : 'none';
+  if (els.receiptPackagingAmount) els.receiptPackagingAmount.textContent = `₹${packagingFee}`;
+  if (els.receiptBillTotal) els.receiptBillTotal.textContent = `₹${grandTotal}`;
+
+  // Build WhatsApp order message
+  let waMsg = `🍽️ *New Order: ${orderToken}*\n`;
+  waMsg += `📍 *Service:* ${modeSummary}\n`;
+  waMsg += `⏰ *Time:* ${timeStr}\n\n`;
+  waMsg += `*Ordered Items:*\n`;
+  itemsSnapshot.forEach(it => {
+    waMsg += `• ${it.name} × ${it.quantity} — ₹${it.total}\n`;
+  });
+  if (kitchenNote) {
+    waMsg += `\n📝 *Kitchen Note:* ${kitchenNote}\n`;
+  }
+  waMsg += `\nSubtotal: ₹${subtotal}\n`;
+  waMsg += `GST (5%): ₹${gst}\n`;
+  if (packagingFee > 0) {
+    waMsg += `Packaging: ₹${packagingFee}\n`;
+  }
+  waMsg += `*Grand Total: ₹${grandTotal}*\n\n`;
+  waMsg += `_Sent via Dinedong Mobile App_`;
+
+  if (els.receiptWhatsAppBtn) {
+    els.receiptWhatsAppBtn.href = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
+  }
+
+  // Morph drawer into receipt view
+  if (els.drawerCartView) els.drawerCartView.style.display = 'none';
+  if (els.drawerReceiptView) {
+    els.drawerReceiptView.style.display = 'flex';
+    els.drawerReceiptView.scrollTop = 0;
+  }
+
+  // Clear cart and sync all indicators
   state.cart.clear();
   updateOrderBadge();
-  renderOrderDrawer();
 
   const currentDish = state.lockedDish || state.hoveredDish || state.centerpieceActiveDish || currentDishes[state.currentFrontIndex] || currentDishes[0];
   if (currentDish) {
@@ -1138,9 +1411,16 @@ els.checkoutBtn.addEventListener('click', () => {
   }
 });
 
-els.receiptCloseBtn.addEventListener('click', () => {
-  els.receiptModalBackdrop.classList.remove('open');
-});
+// "New Order" Button: Reset Drawer back to Cart View
+if (els.receiptNewOrderBtn) {
+  els.receiptNewOrderBtn.addEventListener('click', () => {
+    haptics.tap(12);
+    if (els.kitchenNoteInput) els.kitchenNoteInput.value = '';
+    if (els.drawerReceiptView) els.drawerReceiptView.style.display = 'none';
+    if (els.drawerCartView) els.drawerCartView.style.display = 'flex';
+    renderOrderDrawer();
+  });
+}
 
 // ============================================================================
 // Minimalist Instant Search (Decluttered & Keyboard-Safe)
@@ -1191,6 +1471,7 @@ window.addEventListener('resize', adjustSearchForVisualViewport);
 
 function openSearch() {
   if (!els.searchModalBackdrop) return;
+  haptics.tap(10);
   els.searchModalBackdrop.classList.add('open');
   els.searchModalBackdrop.setAttribute('aria-hidden', 'false');
 
@@ -1217,6 +1498,7 @@ function openSearch() {
 
 function closeSearch() {
   if (!els.searchModalBackdrop) return;
+  haptics.tap(8);
   els.searchModalBackdrop.classList.remove('open');
   els.searchModalBackdrop.setAttribute('aria-hidden', 'true');
 
@@ -1494,28 +1776,9 @@ window.addEventListener('keydown', (e) => {
     closeSearch();
     closeDrawer();
     unlockAndResume();
-    els.receiptModalBackdrop.classList.remove('open');
+    if (els.receiptModalBackdrop) els.receiptModalBackdrop.classList.remove('open');
   }
 });
-
-// ============================================================================
-// Sound Chime Toggle
-// ============================================================================
-if (els.soundToggleBtn) {
-  els.soundToggleBtn.addEventListener('click', () => {
-    initAudio();
-    state.soundEnabled = !state.soundEnabled;
-
-    if (state.soundEnabled) {
-      els.soundOnIcon.style.display = 'block';
-      els.soundOffIcon.style.display = 'none';
-      playChimeSound();
-    } else {
-      els.soundOnIcon.style.display = 'none';
-      els.soundOffIcon.style.display = 'block';
-    }
-  });
-}
 
 // Message popup toast removed per user request
 function showToast() {}
@@ -1540,6 +1803,8 @@ window.addEventListener('error', (e) => {
 // Application Initialization
 // ============================================================================
 function init() {
+  initOrderContext();
+  setOrderMode('dine-in');
   buildFoodRing();
   updateHeroSpotlight(DISHES[0]);
   highlightFrontCard(0);
