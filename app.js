@@ -57,6 +57,7 @@ const els = {
   
   // Decluttered Hero Spotlight
   heroSpotlight: document.getElementById('heroSpotlight'),
+  spotlightCategory: document.getElementById('spotlightCategory'),
   spotlightTitle: document.getElementById('spotlightTitle'),
   spotlightFlavorNote: document.getElementById('spotlightFlavorNote'),
   spotlightPrice: document.getElementById('spotlightPrice'),
@@ -314,9 +315,18 @@ window.addEventListener('resize', () => {
 // ============================================================================
 function updateHeroSpotlight(dish) {
   if (!dish) return;
-  els.spotlightTitle.textContent = dish.name;
-  els.spotlightFlavorNote.textContent = dish.flavorNote;
-  els.spotlightPrice.textContent = `₹${dish.price}`;
+  if (els.spotlightCategory) {
+    els.spotlightCategory.textContent = dish.category || 'Curated Offering';
+  }
+  if (els.spotlightTitle) {
+    els.spotlightTitle.textContent = dish.name;
+  }
+  if (els.spotlightFlavorNote) {
+    els.spotlightFlavorNote.textContent = dish.flavorNote || dish.description || '';
+  }
+  if (els.spotlightPrice) {
+    els.spotlightPrice.textContent = `₹${dish.price}`;
+  }
 }
 
 // ============================================================================

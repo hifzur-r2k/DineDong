@@ -69,15 +69,9 @@
     <main class="main-content">
 
       <!-- ====================================================================
-           2. Decluttered Minimalist Hero Spotlight (Directly Above Ring)
+           Top Center Dietary Filter (Directly Below Top Navigation Header)
            ==================================================================== -->
-      <section class="hero-spotlight" id="heroSpotlight" aria-live="polite">
-        <h1 class="spotlight-title" id="spotlightTitle">Mumbai Masala Vada Pav</h1>
-        <p class="spotlight-flavor-note" id="spotlightFlavorNote">
-          Spiced golden potato batata vada, fiery garlic-peanut dry chutney, toasted buttered pav.
-        </p>
-
-        <!-- Compact Understated Diet Filter Pill (All | Veg | Non-Veg) Relocated Above 3D Ring -->
+      <div class="top-diet-bar" id="topDietBar">
         <div class="diet-filter-pill" id="dietFilterPill" role="radiogroup" aria-label="Filter dishes by diet">
           <button type="button" class="diet-filter-btn active" data-filter="all" id="btnFilterAll" role="radio" aria-checked="true">
             All
@@ -91,6 +85,17 @@
             <span>Non-Veg</span>
           </button>
         </div>
+      </div>
+
+      <!-- ====================================================================
+           Hero Spotlight: Dish Title & Description (Designer Editorial Hierarchy)
+           ==================================================================== -->
+      <section class="hero-spotlight" id="heroSpotlight" aria-live="polite">
+        <span class="spotlight-category" id="spotlightCategory">Street Delights</span>
+        <h1 class="spotlight-title" id="spotlightTitle">Mumbai Masala Vada Pav</h1>
+        <p class="spotlight-flavor-note" id="spotlightFlavorNote">
+          Spiced golden potato batata vada, fiery garlic-peanut dry chutney, toasted buttered pav.
+        </p>
 
         <div class="spotlight-actions" style="display: none;">
           <span class="spotlight-price" id="spotlightPrice">₹120</span>

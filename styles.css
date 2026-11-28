@@ -324,39 +324,72 @@ body {
 }
 
 /* ==========================================================================
-   2. Decluttered Minimalist Hero Spotlight
+   Top Center Dietary Filter Bar (Directly Below Top Navigation Header)
+   ========================================================================== */
+.top-diet-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin: 6px auto 12px;
+  padding: 0 16px;
+  position: relative;
+  z-index: 50;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   2. Hero Spotlight: Dish Title & Description (Designer Editorial Hierarchy)
    ========================================================================== */
 .hero-spotlight {
   text-align: center;
-  max-width: 640px;
+  max-width: 580px;
   width: 100%;
-  padding: 4px 16px 0;
+  padding: 0 16px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
   z-index: 40;
-  min-height: auto;
 }
 
+/* Eyebrow / Kicker Category Tag */
+.spotlight-category {
+  font-family: var(--font-main);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent-saffron);
+  margin-bottom: 6px;
+  display: inline-block;
+  line-height: 1.2;
+  transition: opacity 0.25s ease;
+}
+
+/* Authoritative, Confident Hero Title */
 .spotlight-title {
   font-family: var(--font-main);
-  font-size: clamp(20px, 3vw, 30px);
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: clamp(24px, 3.4vw, 36px);
+  font-weight: 800;
+  line-height: 1.15;
   color: var(--text-primary);
-  letter-spacing: -0.03em;
-  margin-bottom: 4px;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+  text-wrap: balance;
 }
 
+/* Sensory Editorial Flavor Note */
 .spotlight-flavor-note {
   font-family: var(--font-main);
-  font-size: clamp(12px, 1.3vw, 14px);
+  font-size: clamp(13px, 1.35vw, 15px);
   font-weight: 400;
-  color: var(--text-secondary);
-  line-height: 1.35;
+  color: #5C5851;
+  line-height: 1.55;
   margin-bottom: 0;
-  max-width: 520px;
+  max-width: 480px;
+  text-wrap: balance;
 }
 
 /* Redundant actions hidden: price & add button are now directly integrated onto the centerpiece card */
@@ -932,25 +965,24 @@ body {
   z-index: 40;
 }
 
-/* Curated Diet Filter Pill (All / Veg / Non-Veg) - Understated & Compact below Hero */
+/* Curated Diet Filter Pill (All / Veg / Non-Veg) - Top Center below Header */
 .diet-filter-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 2px;
   height: 32px;
-  margin-top: 14px;
-  margin-bottom: 16px;
+  margin: 0;
   background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 1px solid #E5E1D8;
   border-radius: 9999px;
-  padding: 2px;
-  box-shadow: 0 2px 8px rgba(24, 23, 21, 0.03);
+  padding: 3px;
+  box-shadow: 0 2px 10px rgba(24, 23, 21, 0.04);
   box-sizing: border-box;
   position: relative;
-  z-index: 40;
+  z-index: 50;
 }
 
 .diet-filter-btn {
@@ -959,29 +991,29 @@ body {
   justify-content: center;
   gap: 5px;
   height: 26px;
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: 9999px;
   border: none;
   background: transparent;
-  color: var(--text-secondary);
+  color: #6E6A63;
   font-family: var(--font-main);
   font-size: 11.5px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.01em;
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   white-space: nowrap;
   box-sizing: border-box;
 }
 
 .diet-filter-btn:hover {
-  color: var(--text-primary);
-  background: rgba(24, 23, 21, 0.05);
+  color: #181715;
+  background: rgba(24, 23, 21, 0.04);
 }
 
 .diet-filter-btn.active {
-  background: var(--text-primary);
+  background: #181715;
   color: #FFFFFF;
   box-shadow: 0 2px 8px rgba(24, 23, 21, 0.16);
 }
@@ -2441,30 +2473,40 @@ body {
     padding: 8px 12px 0;
   }
 
+  .top-diet-bar {
+    margin: 4px auto 8px;
+    padding: 0 12px;
+  }
+
   .hero-spotlight {
-    padding: 4px 10px 0;
+    padding: 0 10px;
     min-height: auto;
   }
 
+  .spotlight-category {
+    font-size: 10px;
+    margin-bottom: 3px;
+  }
+
   .spotlight-title {
-    font-size: 20px;
-    margin-bottom: 4px;
+    font-size: 21px;
+    margin-bottom: 5px;
   }
 
   .spotlight-flavor-note {
-    font-size: 12px;
+    font-size: 12.5px;
+    line-height: 1.45;
     margin-bottom: 0;
   }
 
   .diet-filter-pill {
-    margin-top: 12px;
-    margin-bottom: 14px;
+    margin: 0;
     height: 30px;
   }
 
   .diet-filter-btn {
     height: 24px;
-    padding: 0 9px;
+    padding: 0 10px;
     font-size: 11px;
   }
 
